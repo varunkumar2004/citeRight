@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 
 @login_required
 def paper_list(request):
-    papers = Paper.objects.filter(user=request.user).order_by('-updated_at')
+    papers = Paper.objects.filter(user=request.user).order_by('-uploaded_at')
     context = {'papers': papers}
     return render(request, 'library/paper_list.html', context)
 
