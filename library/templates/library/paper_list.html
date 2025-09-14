@@ -1,0 +1,34 @@
+{% extends 'library/base.html' %}
+
+{% block title %}
+My Library
+{% endblock %}
+
+{% block content %}
+
+<div>
+    <h2>My Library</h2>
+</div>
+
+{% for paper in papers %}
+
+<div class="card">
+    <h5>{{ paper.title }}</h5>
+    <h6>Uploaded on {{ paper.uploaded_at|date:"F d, Y" }}</h6>
+
+    <!-- <p class="card-text">
+            File: <a href="{{ paper.pdf_file.url }}" target="_blank">{{ paper.filename }}</a>
+        </p>
+    <a href="{% url 'paper_detail' paper.pk %}" class="btn btn-secondary btn-sm">View Details & Notes</a> -->
+</div>
+
+{% empty %}
+
+<div>
+    <h4>Your library is empty.</h4>
+    <p>Click the "Upload Paper" button to get started.</p>
+</div>
+
+{% endfor %}
+
+{% endblock %}

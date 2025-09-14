@@ -1,0 +1,8 @@
+from django.contrib import admin
+from .models import Author, Tag, Paper, Note
+
+# Register your models here.
+admin.site.register(Author)
+admin.site.register(Tag)
+admin.site.register(Paper)
+admin.site.register(Note)
