@@ -1,7 +1,54 @@
-{% extends 'library/base.html' %}
+{% extends "library/base.html" %}
+
+{% block title %}{{ paper.title }}{% endblock %}
 
 {% block content %}
+<div class="row">
+    <!-- Paper Details Column -->
+    <div class="col-md-7">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h2 class="card-title">{{ paper.title }}</h2>
+                <h6 class="card-subtitle mb-3 text-muted">Uploaded on {{ paper.uploaded_at|date:"F d, Y" }}</h6>
+                <a href="{{ paper.pdf_file.url }}" target="_blank" class="btn btn-primary">
+                    View PDF
+                </a>
+                <a href="{% url 'paper_list' %}" class="btn btn-secondary">
+                    Back to Library
+                </a>
+            </div>
+        </div>
+    </div>
 
-
-
+    <!-- Notes Column -->
+    <div class="col-md-5">
+        <h4>My Notes</h4>
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ noteform.content }}
+                    </div>
+                    <button type="submit" class="btn btn-success">Add Note</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Existing Notes -->
+        {% for note in paper.notes.all %}
+        <div class="card mb-2">
+            <div class="card-body">
+                <p class="card-text">{{ note.content|linebreaksbr }}</p>
+                <small class="text-muted">Added on {{ note.created_at|date:"F d, Y, P" }}</small>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center p-3">
+            <p>You haven't added any notes for this paper yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
 {% endblock %}
+

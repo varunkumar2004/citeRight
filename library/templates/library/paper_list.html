@@ -1,34 +1,28 @@
-{% extends 'library/base.html' %}
+{% extends "library/base.html" %}
 
-{% block title %}
-My Library
-{% endblock %}
+{% block title %}My Library{% endblock %}
 
 {% block content %}
-
-<div>
+<div class="d-flex justify-content-between align-items-center mb-4">
     <h2>My Library</h2>
 </div>
 
 {% for paper in papers %}
-
-<div class="card">
-    <h5>{{ paper.title }}</h5>
-    <h6>Uploaded on {{ paper.uploaded_at|date:"F d, Y" }}</h6>
-
-    <!-- <p class="card-text">
+<div class="card mb-3 shadow-sm">
+    <div class="card-body">
+        <h5 class="card-title">{{ paper.title }}</h5>
+        <h6 class="card-subtitle mb-2 text-muted">Uploaded on {{ paper.uploaded_at|date:"F d, Y" }}</h6>
+        <p class="card-text">
             File: <a href="{{ paper.pdf_file.url }}" target="_blank">{{ paper.filename }}</a>
         </p>
-    <a href="{% url 'paper_detail' paper.pk %}" class="btn btn-secondary btn-sm">View Details & Notes</a> -->
+        <a href="{% url 'paper_detail' paper.pk %}" class="btn btn-secondary btn-sm">View Details & Notes</a>
+    </div>
 </div>
-
 {% empty %}
-
-<div>
+<div class="text-center p-5">
     <h4>Your library is empty.</h4>
     <p>Click the "Upload Paper" button to get started.</p>
 </div>
-
 {% endfor %}
 
 {% endblock %}
