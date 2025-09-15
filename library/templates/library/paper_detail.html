@@ -1,53 +1,76 @@
 {% extends "library/base.html" %}
+{% load socialaccount %}
 
 {% block title %}{{ paper.title }}{% endblock %}
 
 {% block content %}
-<div class="row">
-    <!-- Paper Details Column -->
-    <div class="col-md-7">
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                <h2 class="card-title">{{ paper.title }}</h2>
-                <h6 class="card-subtitle mb-3 text-muted">Uploaded on {{ paper.uploaded_at|date:"F d, Y" }}</h6>
-                <a href="{{ paper.pdf_file.url }}" target="_blank" class="btn btn-primary">
-                    View PDF
-                </a>
-                <a href="{% url 'paper_list' %}" class="btn btn-secondary">
-                    Back to Library
-                </a>
-            </div>
-        </div>
-    </div>
+<div class="container mt-4">
+    <div class="row g-4">
+        <!-- Main Paper Details Column -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h2 class="card-title">{{ paper.title }}</h2>
+                    
+                    {% if paper.authors.all %}
+                        <h6 class="card-subtitle mb-2 text-muted">
+                            by {% for author in paper.authors.all %}{{ author.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                        </h6>
+                    {% endif %}
 
-    <!-- Notes Column -->
-    <div class="col-md-5">
-        <h4>My Notes</h4>
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        {{ noteform.content }}
-                    </div>
-                    <button type="submit" class="btn btn-success">Add Note</button>
-                </form>
+                    <p class="card-text text-secondary small">
+                        Uploaded on {{ paper.uploaded_at|date:"F d, Y" }} by 
+                        <a href="{% url 'library:profile_view' paper.uploader.username %}">{{ paper.uploader.username }}</a>
+                    </p>
+
+                    {% if paper.tags.all %}
+                        <div class="mb-3">
+                            {% for tag in paper.tags.all %}
+                                <span class="badge bg-light text-dark">{{ tag.name }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <a href="{{ paper.pdf_file.url }}" target="_blank" class="btn btn-primary">
+                        <i class="bi bi-file-earmark-pdf"></i> View PDF
+                    </a>
+                    <a href="{% url 'library:paper_list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Library
+                    </a>
+                </div>
             </div>
         </div>
-        
-        <!-- Existing Notes -->
-        {% for note in paper.notes.all %}
-        <div class="card mb-2">
-            <div class="card-body">
-                <p class="card-text">{{ note.content|linebreaksbr }}</p>
-                <small class="text-muted">Added on {{ note.created_at|date:"F d, Y, P" }}</small>
+
+        <!-- Notes Column -->
+        <div class="col-lg-4">
+            <h4>My Notes</h4>
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="id_content" class="form-label visually-hidden">Note Content</label>
+                            <textarea name="content" cols="40" rows="4" class="form-control" placeholder="Add a new note..." required id="id_content"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Add Note</button>
+                    </form>
+                </div>
             </div>
+            
+            <!-- Existing Notes -->
+            {% for note in paper.notes.all %}
+            <div class="card mb-2">
+                <div class="card-body">
+                    <p class="card-text mb-1">{{ note.content|linebreaksbr }}</p>
+                    <small class="text-muted d-block text-end">{{ note.created_at|date:"F d, Y, P" }}</small>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center p-3 bg-light rounded">
+                <p class="mb-0">You haven't added any notes for this paper yet.</p>
+            </div>
+            {% endfor %}
         </div>
-        {% empty %}
-        <div class="text-center p-3">
-            <p>You haven't added any notes for this paper yet.</p>
-        </div>
-        {% endfor %}
     </div>
 </div>
 {% endblock %}
