@@ -1,28 +1,46 @@
 {% extends "library/base.html" %}
 
-{% block title %}My Library{% endblock %}
+<!-- {% block title %}My Library{% endblock %} -->
+
+
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>My Library</h2>
-</div>
+<main class="col-lg-9">
+    <!-- <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+        <h5 class="mb-2 mb-lg-0">Java Developer <span class="text-secondary fw-normal">(1143)</span></h5>
+    </div> -->
 
-{% for paper in papers %}
-<div class="card mb-3 shadow-sm">
-    <div class="card-body">
-        <h5 class="card-title">{{ paper.title }}</h5>
-        <h6 class="card-subtitle mb-2 text-muted">Uploaded on {{ paper.uploaded_at|date:"F d, Y" }}</h6>
-        <p class="card-text">
-            File: <a href="{{ paper.pdf_file.url }}" target="_blank">{{ paper.filename }}</a>
-        </p>
-        <a href="{% url 'paper_detail' paper.pk %}" class="btn btn-secondary btn-sm">View Details & Notes</a>
+    <div class="row g-3 g-lg-4 row-cols-1 row-cols-md-2 row-cols-xl-3">
+        {% for paper in papers %}
+        <div class="col">
+            <div class="job-card bg-blue p-3">
+                <!-- <i class="bi bi-bookmark bookmark"></i> -->
+
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="brand-badge"><i class="bi bi-ev-front"></i></span>
+                    <h6 class="mb-0">{{ paper.title }}</h6>
+                </div>
+
+                <p class="text-secondary small mb-3">
+                    {{ paper.title }}
+                    <!-- add description to paper -->
+                </p>
+
+                <div class="d-flex gap-2 mb-3">
+                    <span class="tag">Full Time</span>
+                    <span class="tag">Mid Level</span>
+                </div>
+
+                <a href="{% url 'paper_detail' paper.pk %}" class="btn btn-secondary btn-sm">View Details &
+                    Notes</a>
+
+                <p class="text-secondary small mb-3">
+                    {{ paper.uploaded_at|date:"F d, Y" }}
+                    <!-- add description to paper -->
+                </p>
+            </div>
+        </div>
+        {% endfor %}
     </div>
-</div>
-{% empty %}
-<div class="text-center p-5">
-    <h4>Your library is empty.</h4>
-    <p>Click the "Upload Paper" button to get started.</p>
-</div>
-{% endfor %}
-
+</main>
 {% endblock %}

@@ -1,32 +1,61 @@
 {% extends "library/base.html" %}
 
-{% block title %}Login{% endblock %}
+{% block title %}Login or Sign Up{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8">
         <div class="card shadow-sm">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="auth-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-panel" type="button" role="tab" aria-controls="login-panel" aria-selected="true">Login</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="signup-tab" data-bs-toggle="tab" data-bs-target="#signup-panel" type="button" role="tab" aria-controls="signup-panel" aria-selected="false">Sign Up</button>
+                    </li>
+                </ul>
+            </div>
             <div class="card-body">
-                <h2 class="card-title text-center">Login</h2>
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="id_username" class="form-label">Username</label>
-                        <input type="text" name="username" class="form-control" id="id_username" required>
+                <div class="tab-content" id="auth-tabs-content">
+                    <!-- Login Form Panel -->
+                    <div class="tab-pane fade show active" id="login-panel" role="tabpanel" aria-labelledby="login-tab">
+                        <h4 class="card-title text-center mb-4 mt-2">Login to Your Account</h4>
+                        <form method="post" novalidate>
+                            {% csrf_token %}
+                             {% for field in login_form %}
+                                <div class="mb-3">
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% for error in field.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                            <button type="submit" name="login_submit" class="btn btn-primary w-100">Login</button>
+                        </form>
                     </div>
-                    <div class="mb-3">
-                        <label for="id_password" class="form-label">Password</label>
-                        <input type="password" name="password" class="form-control" id="id_password" required>
+                    <!-- Signup Form Panel -->
+                    <div class="tab-pane fade" id="signup-panel" role="tabpanel" aria-labelledby="signup-tab">
+                        <h4 class="card-title text-center mb-4 mt-2">Create a New Account</h4>
+                        <form method="post" novalidate>
+                            {% csrf_token %}
+                            {% for field in signup_form %}
+                                <div class="mb-3">
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% if field.help_text %}
+                                        <small class="form-text text-muted">{{ field.help_text|safe }}</small>
+                                    {% endif %}
+                                    {% for error in field.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                            <button type="submit" name="signup_submit" class="btn btn-success w-100">Sign Up</button>
+                        </form>
                     </div>
-                    {% if form.errors %}
-                        <div class="alert alert-danger" role="alert">
-                            Your username and password didn't match. Please try again.
-                        </div>
-                    {% endif %}
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Login</button>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
