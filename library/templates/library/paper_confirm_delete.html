@@ -1,0 +1,29 @@
+{% extends "library/base.html" %}
+
+{% block title %}Confirm Delete{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">Confirm Deletion</h4>
+                </div>
+                <div class="card-body text-center">
+                    <p class="lead">Are you sure you want to permanently delete the paper titled:</p>
+                    <h5 class="mb-4">"{{ paper.title }}"?</h5>
+                    
+                    <p class="text-danger"><strong>This action cannot be undone.</strong></p>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-lg">Yes, Delete It</button>
+                        <a href="{% url 'library:paper_detail' paper.pk %}" class="btn btn-secondary btn-lg">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

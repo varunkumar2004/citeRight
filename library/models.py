@@ -46,6 +46,10 @@ class Paper(models.Model):
     
     def filename(self):
         return os.path.basename(self.pdf_file.name)
+    
+    def delete(self, *args, **kwargs):
+        self.pdf_file.delete(save=False)
+        super().delete(*args, **kwargs)
 
 class Note(models.Model):
     """Represents a user's note on a specific paper."""

@@ -16,5 +16,8 @@ urlpatterns = [
 
     # This pattern handles the paper upload page
     path('upload/', views.upload_paper, name='upload_paper'),
+    
+    # This pattern handles the paper upload page
+    path('delete/<int:pk>', views.delete_paper, name='delete_paper'),
 ]
 
