@@ -5,61 +5,73 @@
 
 {% block content %}
 <div class="container mt-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-        <h3 class="mb-2 mb-lg-0">{{ view_title }}</h3>
-        <a href="{% url 'library:upload_paper' %}" class="btn btn-primary">
-            <i class="bi bi-upload"></i> Upload New Paper
-        </a>
-    </div>
 
-    <div class="row g-3 g-lg-4 row-cols-1 row-cols-md-2 row-cols-xl-3">
-        {% for paper in papers %}
-        <div class="col">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">{{ paper.title }}</h5>
-
-                    {% if paper.authors.all %}
-                    <h6 class="card-subtitle mb-2 text-muted">
-                        by 
-                        {% for author in paper.authors.all %}
-                        {{ author.name }}
-                        {% endfor %}
-                    </h6>
-                    {% endif %}
-
-                    <p class="card-text text-secondary small">
-                        Uploaded by <a href="{% url 'library:profile_view' paper.uploader.username %}">{{ paper.uploader.username }}</a> on {{ paper.uploaded_at|date:"F d, Y" }}
-                    </p>
-
-                    {% if paper.tags.all %}
-                    <div class="mt-2 mb-3">
-                        {% for tag in paper.tags.all %}
-                        <span class="badge bg-secondary">{{ tag.name }}</span>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-
-                    <div class="mt-auto pt-2">
-                        <a href="{% url 'library:paper_detail' paper.pk %}" class="btn btn-outline-primary btn-sm">View
-                            Details</a>
-                        {% if user == paper.uploader %}
-                        <a href="{% url 'library:delete_paper' paper.pk %}" class="btn btn-outline-danger btn-sm">
-                            <i class="bi bi-trash"></i> Delete
-                        </a>
+    {% comment %}
+    This block handles the simpler, non-tabbed view for profile pages and search results.
+    It uses the 'is_home_view' flag from the view to decide what to render.
+    {% endcomment %}
+    {% if not is_home_view %}
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+            <h3 class="mb-2 mb-lg-0">{{ view_title }}</h3>
+            {% if profile_user and profile_user != user %}
+                {% if user in profile_user.followers.all %}
+                    <a href="{% url 'library:unfollow_user' profile_user.username %}" class="btn btn-outline-secondary">Unfollow</a>
+                {% else %}
+                    <a href="{% url 'library:follow_user' profile_user.username %}" class="btn btn-primary">Follow</a>
+                {% endif %}
+            {% endif %}
+        </div>
+        <div class="row g-3 g-lg-4 row-cols-1 row-cols-md-2 row-cols-xl-3">
+            {% for paper in papers %}
+                {% include 'library/partials/_paper_card.html' %}
+            {% empty %}
+                <div class="col-12">
+                    <div class="text-center p-5 bg-body-tertiary rounded-3">
+                        {% if search_query %}
+                            <h4>No Results Found</h4>
+                            <p class="text-muted">Your search for "{{ search_query }}" did not match any papers.</p>
+                        {% else %}
+                            <h4>No Papers Found</h4>
+                            <p class="text-muted">This user hasn't uploaded any papers yet.</p>
                         {% endif %}
                     </div>
                 </div>
+            {% endfor %}
+        </div>
+
+    {% comment %}
+    This block renders the new tabbed interface for the main homepage.
+    {% endcomment %}
+    {% else %}
+        <ul class="nav nav-tabs mb-4" id="homeTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="all-papers-tab" data-bs-toggle="tab" data-bs-target="#all-papers-panel" type="button" role="tab" aria-controls="all-papers-panel" aria-selected="true">All Papers</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="following-tab" data-bs-toggle="tab" data-bs-target="#following-panel" type="button" role="tab" aria-controls="following-panel" aria-selected="false">Following</button>
+            </li>
+        </ul>
+        <div class="tab-content" id="homeTabContent">
+            <div class="tab-pane fade show active" id="all-papers-panel" role="tabpanel" aria-labelledby="all-papers-tab">
+                <div class="row g-3 g-lg-4 row-cols-1 row-cols-md-2 row-cols-xl-3">
+                    {% for paper in all_papers %}
+                        {% include 'library/partials/_paper_card.html' %}
+                    {% empty %}
+                         <div class="col-12"><div class="text-center p-5 bg-body-tertiary rounded-3"><h4>No papers have been uploaded yet.</h4></div></div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="tab-pane fade" id="following-panel" role="tabpanel" aria-labelledby="following-tab">
+                 <div class="row g-3 g-lg-4 row-cols-1 row-cols-md-2 row-cols-xl-3">
+                    {% for paper in feed_papers %}
+                        {% include 'library/partials/_paper_card.html' %}
+                    {% empty %}
+                         <div class="col-12"><div class="text-center p-5 bg-body-tertiary rounded-3"><h4>Your feed is empty.</h4><p>Follow researchers to see their latest papers here.</p></div></div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
-        {% empty %}
-        <div class="col-12">
-            <div class="text-center p-5 bg-light rounded">
-                <h4>No papers found.</h4>
-                <p>Why not upload one?</p>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
+    {% endif %}
 </div>
 {% endblock %}
+

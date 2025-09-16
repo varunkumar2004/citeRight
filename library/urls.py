@@ -5,19 +5,13 @@ from . import views
 app_name = 'library'
 
 urlpatterns = [
-    # This pattern handles the universal list of all papers (e.g., your homepage)
-    path('', views.paper_list_view, name='paper_list'),
-
-    # This pattern handles the user-specific profile page
-    path('profile/<str:username>/', views.paper_list_view, name='profile_view'),
-
-    # This pattern handles the detail view for a single paper
-    path('paper/<int:pk>/', views.paper_detail, name='paper_detail'),
-
-    # This pattern handles the paper upload page
-    path('upload/', views.upload_paper, name='upload_paper'),
-    
-    # This pattern handles the paper upload page
-    path('delete/<int:pk>', views.delete_paper, name='delete_paper'),
+    path('', views.paper_list_view, name='paper_list'), # This pattern handles the universal list of all papers (e.g., your homepage)
+    path('profile/<str:username>/', views.paper_list_view, name='profile_view'), # This pattern handles the user-specific profile page
+    path('paper/<int:pk>/', views.paper_detail, name='paper_detail'), # This pattern handles the detail view for a single paper
+    path('upload/', views.upload_paper, name='upload_paper'), # This pattern handles the paper upload page    
+    path('delete/<int:pk>', views.delete_paper, name='delete_paper'), # This pattern handles the paper upload page
+    # routes for follow/unfollow functionality
+    path('follow/<str:username>', views.follow_user, name="follow_user"),
+    path('unfollow/<str:username>', views.unfollow_user, name="unfollow_user"),
 ]
 

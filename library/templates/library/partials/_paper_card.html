@@ -1,0 +1,39 @@
+{% comment %}
+This partial template contains the HTML for a single paper card.
+It is included in the main paper_list.html template to avoid code repetition.
+{% endcomment %}
+<div class="col">
+    <div class="card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column">
+            <h5 class="card-title">{{ paper.title }}</h5>
+
+            {% if paper.authors.all %}
+                <h6 class="card-subtitle mb-2 text-muted">
+                   by {% for author in paper.authors.all %}{{ author.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                </h6>
+            {% endif %}
+            
+            <p class="card-text text-secondary small">
+                Uploaded by <a href="{% url 'library:profile_view' paper.uploader.username %}">{{ paper.uploader.username }}</a> on {{ paper.uploaded_at|date:"F d, Y" }}
+            </p>
+
+            {% if paper.tags.all %}
+                <div class="mt-2 mb-3">
+                    {% for tag in paper.tags.all %}
+                        <span class="badge bg-secondary">{{ tag.name }}</span>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="mt-auto pt-2">
+                 <a href="{% url 'library:paper_detail' paper.pk %}" class="btn btn-outline-primary btn-sm">View Details</a>
+                 {% if user == paper.uploader %}
+                    <a href="{% url 'library:delete_paper' paper.pk %}" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-trash"></i> Delete
+                    </a>
+                 {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+

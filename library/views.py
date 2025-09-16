@@ -11,13 +11,13 @@ import nltk
 import re
 import fitz # PyMuPDF
 from django.core.files.base import ContentFile
+from nltk.corpus import stopwords
+
 
 try:
     nltk.data.find('corpora/stopwords')
 except LookupError:
     nltk.download('stopwords')
-
-from nltk.corpus import stopwords
 
 
 @login_required
@@ -25,31 +25,45 @@ def paper_list_view(request, username=None):
     """
     Handles displaying papers. Now includes search functionality.
     """
-    papers = Paper.objects.all()
+    context = {}
     query = request.GET.get('q') # Get the search query from the URL's GET parameters
 
     if query:
         # If a search query is provided, filter the papers across multiple fields
-        papers = papers.filter(
+        papers = Paper.objects.filter(
             Q(title__icontains=query) |
             Q(uploader__username__icontains=query) |
             Q(authors__name__icontains=query)
-        ).distinct() # Use distinct() to avoid duplicate results from the author search
+        ).distinct().order_by("-uploaded_at") # Use distinct() to avoid duplicate results from the author search
+        
         view_title = f"Search Results for '{query}'"
+        context = {
+            'papers': papers,
+            'view_title': view_title,
+            'search_query': query
+        }
     elif username:
         # If viewing a specific user's profile
         user = get_object_or_404(User, username=username)
-        papers = papers.filter(uploader=user)
+        papers = Paper.objects.filter(uploader=user).order_by("-uploaded_at")
         view_title = f"Papers Uploaded by {user.username}"
+        context = {
+            'papers': papers,
+            'view_title': view_title,
+            'search_query': query
+        }
     else:
         # The default view showing all papers
-        view_title = 'All Papers in the Library'
-
-    context = {
-        'papers': papers.order_by('-uploaded_at'),
-        'view_title': view_title,
-        'search_query': query # Pass the query back to the template
-    }
+        all_papers = Paper.objects.all().order_by("-uploaded_at")
+        followed_users = request.user.profile.following.all()
+        feed_papers = Paper.objects.filter(uploader__in=followed_users).order_by('-uploaded_at')
+        view_title = 'Home'
+        context = {
+            'all_papers': all_papers,
+            'feed_papers': feed_papers,
+            'view_title': view_title,
+            'is_home_view': True  # A flag for the template to render tabs
+        }
     
     return render(request, 'library/paper_list.html', context)
 
@@ -141,6 +155,21 @@ def upload_paper(request):
     else:
         form = PaperUploadForm()
     return render(request, 'library/paper_upload.html', {'form': form})
+
+
+@login_required
+def follow_user(request, username):
+    """Handles following of users."""
+    user_to_follow = get_object_or_404(User, username=username)
+    request.user.profile.following.add(user_to_follow)
+    return redirect('library:profile_view', username=username)
+
+@login_required
+def unfollow_user(request, username):
+    """Handles unfollowing of users."""
+    user_to_unfollow = get_object_or_404(User, username=username)
+    request.user.profile.following.remove(user_to_unfollow)
+    return redirect('library:profile_view', username=username)
 
 
 @login_required
