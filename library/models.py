@@ -2,18 +2,19 @@ from django.db import models
 from django.contrib.auth.models import User
 import os
 
-# Create your models here.
+# class UserProfile(models.Model):
+#     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+#     following = models.ManyToManyField(User, related_name="folowers", blank=True)
+    
+#     def __str__(self):
+#         return f'{self.user.username} Profile'
 
 class Author(models.Model):
     """
     Represents an author. An author can be a registered user of the system,
     or an external author who is not a user (e.g., for citing existing papers).
     """
-    # This links the Author to a specific user account.
-    # It's optional (null=True, blank=True) because an author might not have an account.
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
-    
-    # This field is required to store the name of authors who are not users.
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name="author_profile")
     name = models.CharField(max_length=200)
 
     def __str__(self):
@@ -31,15 +32,14 @@ class Tag(models.Model):
 
 class Paper(models.Model):
     """Represents a single research paper/document."""
-    # Renamed 'user' to 'uploader' for clarity. This is the person who added the paper.
     uploader = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=300)
-    # This links to the authors who WROTE the paper.
     authors = models.ManyToManyField(Author, blank=True)
     publication_year = models.IntegerField(null=True, blank=True)
     tags = models.ManyToManyField(Tag, blank=True)
     pdf_file = models.FileField(upload_to='papers/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    thumbnail = models.ImageField(upload_to='thumbnails/', null=True, blank=True)
 
     def __str__(self):
         return self.title
@@ -49,6 +49,8 @@ class Paper(models.Model):
     
     def delete(self, *args, **kwargs):
         self.pdf_file.delete(save=False)
+        if self.thumbnail:
+            self.thumbnail.delete(save=False)
         super().delete(*args, **kwargs)
 
 class Note(models.Model):

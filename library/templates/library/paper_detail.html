@@ -4,6 +4,57 @@
 {% block title %}{{ paper.title }}{% endblock %}
 
 {% block content %}
+<style>
+    /* Styles for the new interactive thumbnail viewer */
+    .thumbnail-container {
+        position: relative;
+        overflow: hidden; /* Keeps the scaled image within the rounded corners */
+        border-radius: var(--bs-border-radius-lg); /* Match Bootstrap's rounded corners */
+        display: block; /* Make the container a block-level element */
+        
+        /* NEW: Constrain the vertical height of the thumbnail viewer */
+        max-height: 500px;
+    }
+
+    .thumbnail-container img {
+        transition: transform 0.3s ease;
+        width: 100%;
+        
+        /* NEW: Make the image fill the container area without distortion */
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .thumbnail-container:hover img {
+        transform: scale(1.005); /* Subtle zoom effect on hover */
+    }
+
+    .thumbnail-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        border-radius: var(--bs-border-radius-lg);
+        pointer-events: none; /* Allows clicks to pass through to the link */
+    }
+
+    .thumbnail-container:hover .thumbnail-overlay {
+        opacity: 1;
+    }
+
+    .thumbnail-overlay-content {
+        text-align: center;
+    }
+</style>
+
 <div class="container mt-4">
     <div class="row g-4">
         <!-- Main Paper Details Column -->
@@ -26,17 +77,41 @@
                     {% if paper.tags.all %}
                         <div class="mb-3">
                             {% for tag in paper.tags.all %}
-                                <span class="badge bg-light text-dark">{{ tag.name }}</span>
+                                <span class="badge bg-light text-dark border">{{ tag.name }}</span>
                             {% endfor %}
                         </div>
                     {% endif %}
+
+                    <!-- New Interactive Thumbnail Viewer -->
+                    {% if paper.thumbnail %}
+                        <a href="{{ paper.pdf_file.url }}" target="_blank" class="thumbnail-container my-4" title="Click to view original file">
+                            <img src="{{ paper.thumbnail.url }}" class="img-fluid" alt="Thumbnail of {{ paper.title }}">
+                            <div class="thumbnail-overlay">
+                                <div class="thumbnail-overlay-content">
+                                    <i class="bi bi-box-arrow-up-right h3"></i>
+                                    <p class="mb-0">View Original File</p>
+                                </div>
+                            </div>
+                        </a>
+                    {% else %}
+                        <div class="text-center p-4 bg-body-tertiary rounded my-4">
+                            <p class="mb-0 text-muted">No thumbnail available.</p>
+                            <a href="{{ paper.pdf_file.url }}" target="_blank" class="btn btn-primary mt-2">
+                                <i class="bi bi-file-earmark-arrow-down"></i> View Original File
+                            </a>
+                        </div>
+                    {% endif %}
                     
-                    <a href="{{ paper.pdf_file.url }}" target="_blank" class="btn btn-primary">
-                        <i class="bi bi-file-earmark-pdf"></i> View PDF
-                    </a>
                     <a href="{% url 'library:paper_list' %}" class="btn btn-outline-secondary">
                         <i class="bi bi-arrow-left"></i> Back to Library
                     </a>
+                    
+                    <!-- Conditional Delete Button -->
+                    {% if user == paper.uploader %}
+                        <a href="{% url 'library:delete_paper' paper.pk %}" class="btn btn-outline-danger float-end">
+                            <i class="bi bi-trash"></i> Delete Paper
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -66,7 +141,7 @@
                 </div>
             </div>
             {% empty %}
-            <div class="text-center p-3 bg-light rounded">
+            <div class="text-center p-3 bg-body-tertiary rounded">
                 <p class="mb-0">You haven't added any notes for this paper yet.</p>
             </div>
             {% endfor %}

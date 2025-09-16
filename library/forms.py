@@ -4,9 +4,27 @@ from django.contrib.auth.models import User
 from .models import Paper, Note
 
 class PaperUploadForm(forms.ModelForm):
+    """
+    Form for uploading a new paper. Includes fields to tag existing users
+    as authors and to create new authors who are not users.
+    """
+    author_users = forms.ModelMultipleChoiceField(
+        queryset=User.objects.all().order_by('username'),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="Tag Platform Users as Authors"
+    )
+    
+    new_authors = forms.CharField(
+        widget=forms.TextInput(attrs={'placeholder': 'e.g., John Doe'}),
+        required=False,
+        label="Add Authors (Non-Users)",
+        help_text="Separate multiple author names with a comma."
+    )
+    
     class Meta: 
         model = Paper
-        fields = ['title', 'pdf_file']
+        fields = ['title', 'pdf_file', 'publication_year']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter paper title'}),
             'pdf_file': forms.FileInput(attrs={'class': 'form-control'}),
@@ -25,21 +43,3 @@ class NoteForm(forms.ModelForm):
                 }
             ),
         }
-        
-class SignUpForm(UserCreationForm):
-    """
-    This form correctly inherits from UserCreationForm to handle passwords
-    and adds a required email field.
-    """
-    email = forms.EmailField(
-        max_length=254,
-        required=True,
-        help_text='Required. Please enter a valid email address.'
-    )
-
-    class Meta(UserCreationForm.Meta):
-        model = User
-        # This line inherits the fields from the parent form (which includes 'username')
-        # and adds our new 'email' field to it. This ensures the password fields
-        # are not accidentally removed.
-        fields = UserCreationForm.Meta.fields + ('email',)

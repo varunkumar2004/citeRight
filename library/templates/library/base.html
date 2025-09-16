@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- The data-bs-theme="dark" attribute enables Bootstrap's dark mode -->
 <html lang="en" data-bs-theme="dark">
 
 <head>
@@ -10,12 +9,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
     <style>
-        /* Custom styles adjusted for dark mode */
         :root {
-            --soft-border: #495057; /* Darker border for dark mode */
+            --soft-border: #495057; 
         }
-
-        /* Using Bootstrap's CSS variables for a theme-adaptive background */
         .brand-badge {
             width: 40px;
             height: 40px;
@@ -26,13 +22,10 @@
             background: var(--bs-secondary-bg);
             border: 1px solid var(--soft-border);
         }
-
         .job-card {
             border-radius: 18px;
             border: 1px solid var(--soft-border);
-            /* Cards will now use the default dark background */
         }
-
         .tag {
             font-size: .75rem;
             border: 1px solid var(--soft-border);
@@ -40,7 +33,6 @@
             border-radius: 999px;
             padding: .2rem .5rem;
         }
-
         .filters-sticky {
             position: sticky;
             top: 1rem;
@@ -50,24 +42,20 @@
 
 <body>
 
-    <!-- Navbar updated for better dark mode contrast -->
     <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom">
         <div class="container-fluid px-3 px-lg-4">
             <a class="navbar-brand fw-semibold d-flex align-items-center gap-2" href="{% url 'library:paper_list' %}">
                 CiteRight
             </a>
-
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainnav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-
             <div class="collapse navbar-collapse" id="mainnav">
                 <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
                     {% if user.is_authenticated %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'library:upload_paper' %}">Upload Paper</a>
                         </li>
-                        
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <img src="{{ user.socialaccount_set.all.0.get_avatar_url }}" class="rounded-circle" alt="{{ user.username }}" width="34" height="34">
@@ -95,15 +83,16 @@
         </div>
     </nav>
     
+    <!-- SEARCH BAR IS NOW A FUNCTIONAL FORM -->
     <div class="container-fluid px-3 px-lg-4 py-3 bg-body-tertiary border-bottom mb-4">
-        <div class="d-flex topbar align-items-center">
+        <form method="get" action="{% url 'library:paper_list' %}" class="d-flex topbar align-items-center">
             <div class="flex-grow-1">
                 <div class="input-group">
                     <span class="input-group-text bg-body-secondary border-secondary-subtle border-end-0"><i class="bi bi-search"></i></span>
-                    <input class="form-control bg-body-secondary border-secondary-subtle border-start-0" placeholder="Search here" />
+                    <input class="form-control bg-body-secondary border-secondary-subtle border-start-0" type="search" name="q" placeholder="Search by title, author, or uploader..." value="{{ search_query|default:'' }}">
                 </div>
             </div>
-        </div>
+        </form>
     </div>
 
     <div class="container">
