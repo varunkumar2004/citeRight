@@ -13,8 +13,22 @@ It is included in the main paper_list.html template to avoid code repetition.
                 </h6>
             {% endif %}
             
-            <p class="card-text text-secondary small">
-                Uploaded by <a href="{% url 'library:profile_view' paper.uploader.username %}">{{ paper.uploader.username }}</a> on {{ paper.uploaded_at|date:"F d, Y" }}
+            <div class="d-flex justify-content-between align-items-center">
+                <p class="card-text text-secondary small mb-0">
+                    Uploaded by <a href="{% url 'library:profile_view' paper.uploader.username %}">{{ paper.uploader.username }}</a>
+                </p>
+
+                <!-- NEW: Follow/Unfollow button logic -->
+                {% if user.is_authenticated and user != paper.uploader %}
+                    {% if user in paper.uploader.followers.all %}
+                        <a href="{% url 'library:unfollow_user' paper.uploader.username %}" class="btn btn-sm btn-outline-secondary">Unfollow</a>
+                    {% else %}
+                        <a href="{% url 'library:follow_user' paper.uploader.username %}" class="btn btn-sm btn-primary">Follow</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+             <p class="card-text text-secondary small">
+                on {{ paper.uploaded_at|date:"F d, Y" }}
             </p>
 
             {% if paper.tags.all %}
