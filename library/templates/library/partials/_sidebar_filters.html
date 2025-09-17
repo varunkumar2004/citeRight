@@ -3,41 +3,42 @@ This partial template contains the HTML for the sidebar, using the new filter de
 {% endcomment %}
 
 <style>
-    /* New styles for the filter sidebar */
+    /* Styles for the filter sidebar */
     .filters-container {
-        background-color: #f0f0f0;
-        border: 1px solid #dcdcdc;
+        display: grid;
+        background-color: var(--secondary-color);
         padding: 1.5rem;
+        gap: 1rem;
     }
     .filters-container .title {
         font-size: 2rem;
         font-weight: 500;
-        font-family: 'Playfair Display', sans-serif;
-        text-transform: uppercase;
+        color: var(--heading-text-color);
+        font-family: var(--heading-font);
     }
     .all-filters {
         display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
+        flex-wrap: wrap;
+        gap: 0.1rem;
     }
     .filter-tag {
-        background-color: #212529; /* Black background */
-        color: #fff;
+        color: var(--input-color); /* Black background */
+        background-color: var(--body-text-color);
         padding: 0.4rem 0.8rem;
-        font-size: 0.5rem;
+        font-size: 0.8rem;
         text-decoration: none;
         text-transform: uppercase;
         display: inline-block;
         transition: background-color 0.2s;
     }
     .filter-tag:hover {
-        background-color: #0d6efd; /* Blue on hover */
+        color: var(--primary-color);
+        background-color: var(--heading-text-color); /* Blue on hover */
     }
 </style>
 
 <aside class="filters-container">
-    <h2 class="title">Tags</h2>
+    <h2 class="title">Filters</h2>
     
     <div class="all-filters">
         {% for tag in all_tags %}
@@ -48,7 +49,7 @@ This partial template contains the HTML for the sidebar, using the new filter de
     </div>
     
     {% if selected_tag %}
-        <a href="{% url 'library:paper_list' %}" class="d-block mt-3 small text-decoration-none">&times; Clear filter for "{{ selected_tag }}"</a>
+        <a href="{% url 'library:paper_list' %}">&times; Clear filter for "{{ selected_tag }}"</a>
     {% endif %}
 </aside>
 

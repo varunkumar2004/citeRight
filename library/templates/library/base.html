@@ -1,10 +1,11 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}CiteRight{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,24 +15,6 @@
 
     {% block styles %}{% endblock %}
     <style>
-        :root {
-            --border-color: #dee2e6;
-        }
-
-        /* Basic Setup */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            background-color: #fff;
-            font-family: 'Roboto', sans-serif;
-            color: #212529;
-            line-height: 1.6;
-        }
-
         a {
             text-decoration: none;
             color: inherit;
@@ -48,7 +31,6 @@
         .site-header {
             font-family: 'Playfair Display', serif;
             border-bottom: 1px solid var(--border-color);
-            background-color: #fff;
         }
 
         .header-nav {
@@ -74,19 +56,20 @@
 
         /* .header-nav .end { text-align: right; } */
         .site-header a {
-            color: #6c757d;
+            color: var(--body-text-color);
             transition: color 0.2s;
             font-size: 0.9rem;
+            font-weight: 700;
         }
 
         .site-header a:hover {
-            color: #212529;
+            color: var(--heading-text-color);
         }
 
         .site-header .brand {
             font-size: 2.5rem;
             font-weight: 700;
-            color: #212529;
+            color: var(--heading-text-color);
         }
 
         /* Main Layout */
