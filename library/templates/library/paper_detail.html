@@ -4,32 +4,22 @@
 <style>
     /* Styles specific to the paper detail page */
     .paper-header .paper-title {
-        font-family: 'Monsterrat', serif;
         font-weight: 700;
         color: #212529;
         font-size: 2rem;
         line-height: 1.3;
         display: block;
     }
-
-    .paper-header .paper-author {
+    .paper-header .paper-attribution {
         font-family: 'Merriweather', serif;
         font-style: italic;
         color: #6c757d;
-        margin-bottom: 1rem;
+        margin-bottom: 0.5rem;
     }
-
-    /* .paper-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-        margin-bottom: 1.5rem;
-    } */
-
     .paper-meta {
         display: flex;
         justify-content: space-between;
-        align-items: flex-end;
+        align-items: flex-start;
     }
     .meta-tags {
         display: flex;
@@ -37,7 +27,7 @@
         gap: 1rem;
     }
     .meta-tags a {
-        font-size: 0.6rem;
+        font-size: 0.8rem;
         color: #171717;
         font-weight: 600;
         transition: background-color 0.2s;
@@ -46,78 +36,69 @@
         text-decoration: underline 1px solid black;
     }
     .meta-date {
-        background-color: #171717;
-        color: #fff;
-        font-size: 0.6rem;
-        padding: 0.25rem 0.6rem;
+        color: #000;
+        font-size: 0.8rem;
         white-space: nowrap;
         flex-shrink: 0;
+        font-weight: 500;
     }
-
-    /* .meta-tags {
-        font-size: 0.6rem;
-        letter-spacing: 0.5px;
-        color: #171717;
-        font-weight: 600;
-        text-transform: uppercase;
-    } */
-
-    .discussion-section {
-        border-top: 1px solid var(--border-color);
-        padding-top: 2rem;
+    .discussion-section h3 {
+        font-family: 'Merriweather', serif;
+        font-style: italic;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
     }
-
+    .comment-form {
+        margin-top: 1rem;
+        display: grid;
+        width: 100%;
+    }
     .comment-form textarea {
         width: 100%;
-        padding: 0.5rem;
+        padding: 0.75rem;
         border: 1px solid var(--border-color);
-        border-radius: 4px;
+        background-color: #f0f0f0;
         font-family: inherit;
         font-size: 1rem;
+        margin-bottom: 0.5rem;
     }
-
     .comment-form button {
         background-color: #212529;
         color: #fff;
         border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 4px;
+        padding: 0.5rem 1.5rem;
         cursor: pointer;
-        margin-top: 0.5rem;
+        float: right;
     }
-
     .comment {
         display: flex;
         gap: 1rem;
-        margin-bottom: 1.5rem;
+        margin-top: 1.5rem;
     }
-
     .comment-avatar {
-        width: 40px;
-        height: 40px;
+        width: 45px;
+        height: 45px;
         border-radius: 50%;
     }
-
     .comment-content {
-        background-color: #f8f9fa;
-        padding: 1rem;
-        border-radius: 8px;
+        line-height: 1.3rem;
         flex: 1;
     }
-
     .comment-author {
         font-weight: bold;
     }
-
     .comment-date {
         font-size: 0.8rem;
         color: #6c757d;
     }
-
     .thumbnail-preview {
         width: 100%;
-        border: 1px solid var(--border-color);
-        padding: 0.5rem;
+        border-radius: 4px;
+    }
+    .sidebar-actions a {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #6c757d;
     }
 </style>
 {% endblock %}
@@ -129,42 +110,34 @@
     <article class="paper-header">
         <div class="paper-meta">
             <div class="meta-tags">
-                {% for tag in paper.tags.all %} {# Show up to 3 tags for a clean look #}
-                <a href="{% url 'library:paper_list' %}?tag={{ tag.name }}">
-                    {{ tag.name|upper }}
-                </a>
+                {% for tag in paper.tags.all %}
+                <a href="{% url 'library:paper_list' %}?tag={{ tag.name }}">{{ tag.name|upper }}</a>
                 {% endfor %}
             </div>
-            <span class="meta-date">{{ paper.uploaded_at|date:"d-m-Y" }}</span>
+            <span class="meta-date">{{ paper.uploaded_at|date:"F d, Y" }}</span>
         </div>
 
         <h1 class="paper-title">{{ paper.title }}</h1>
 
-        {% if paper.authors.all %}
-        <p class="paper-author">
-            By {% for author in paper.authors.all %}{{ author.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+        <p class="paper-attribution">
+            {% if paper.authors.all %}
+                By {% for author in paper.authors.all %}{{ author.name }}{% if not forloop.last %}, {% endif %}{% endfor %} |
+            {% endif %}
+            Uploaded by <a href="{% url 'library:profile_view' paper.uploader.username %}">{{ paper.uploader.username }}</a>
         </p>
-        {% endif %}
-
-        <!-- <div class="paper-meta">
-            {% for tag in paper.tags.all %}
-            <span class="meta-tag">{{ tag.name }}</span>
-            {% endfor %}
-        </div> -->
     </article>
 
     <section class="discussion-section">
-        <h3>Discussion ({{ paper.comments.count }})</h3>
-
         <!-- New Comment Form -->
         <div class="comment-form my-4">
             <form method="post">
                 {% csrf_token %}
                 {{ comment_form.content }}
-                <button type="submit">Post Comment</button>
+                <button type="submit">Post</button>
             </form>
         </div>
 
+        <h3>Discussions ({{ paper.comments.count }})</h3>
         <!-- Existing Comments -->
         <div class="comments-list">
             {% for comment in paper.comments.all %}
@@ -173,14 +146,14 @@
                     class="comment-avatar">
                 <div class="comment-content">
                     <p class="mb-1">
-                        <strong class="comment-author">{{ comment.user.username }}</strong>
-                        <span class="comment-date ms-2">{{ comment.created_at|date:"F d, Y" }}</span>
+                        <strong class="comment-author">{{ comment.user.username }} - </strong>
+                        <span class="comment-date ms-2">{{ comment.created_at|timesince }} ago</span>
                     </p>
                     <p>{{ comment.content|linebreaksbr }}</p>
                 </div>
             </div>
             {% empty %}
-            <p class="text-muted">No comments yet. Be the first to start the discussion!</p>
+            <p class="text-muted mt-4">No comments yet. Be the first to start the discussion!</p>
             {% endfor %}
         </div>
     </section>
@@ -201,9 +174,8 @@
         </div>
         {% endif %}
 
-        <div class="mt-4">
-            <a href="{% url 'library:paper_list' %}" style="display: block; margin-bottom: 0.5rem;">&larr; Back to
-                Library</a>
+        <div class="mt-4 sidebar-actions">
+            <a href="{% url 'library:paper_list' %}">&larr; Back to Library</a>
             {% if user == paper.uploader %}
             <a href="{% url 'library:delete_paper' paper.pk %}" style="color: #dc3545;">Delete Paper</a>
             {% endif %}
@@ -211,3 +183,4 @@
     </div>
 </aside>
 {% endblock %}
+

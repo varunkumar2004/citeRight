@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from .models import Paper, Tag, Author
+from .models import Paper, Tag, Author, UserProfile, Comment
 from .forms import PaperUploadForm, CommentForm
 from django.http import HttpResponseForbidden
 import PyPDF2
@@ -23,10 +23,12 @@ except LookupError:
 @login_required
 def paper_list_view(request, username=None):
     """
-    Handles displaying papers and ensures the tag filter sidebar is always populated.
+    Handles displaying papers for the homepage, profiles, and search/filter results.
+    Queries are optimized to efficiently fetch related author and uploader data.
     """
-    papers = Paper.objects.all()
-    # CORRECTED: Fetch all tags to populate the sidebar on every page view.
+    # Base queryset is now optimized to pre-fetch related data
+    papers = Paper.objects.select_related('uploader').prefetch_related('authors', 'tags')
+    
     all_tags = Tag.objects.all().order_by('name')
     query = request.GET.get('q')
     tag_filter = request.GET.get('tag')
@@ -46,21 +48,12 @@ def paper_list_view(request, username=None):
         profile_user = get_object_or_404(User, username=username)
         papers = papers.filter(uploader=profile_user)
         view_title = f"Papers by {profile_user.username}"
-        # Pass the profile user to the context to handle follow buttons
         context['profile_user'] = profile_user
     else:
-        # This is the default homepage view, now simplified
         view_title = 'CiteRight'
-        # Pass the is_home_view flag for the template to render tabs
-        context['is_home_view'] = True
-        # For the home view, we need separate querysets for the tabs
-        context['all_papers'] = papers.order_by("-uploaded_at")
-        followed_users = request.user.profile.following.all()
-        context['feed_papers'] = papers.filter(uploader__in=followed_users).order_by('-uploaded_at')
 
-    # CORRECTED: The context is now consistently populated for all views.
     context.update({
-        'papers': papers.order_by("-uploaded_at") if not context.get('is_home_view') else None,
+        'papers': papers.order_by("-uploaded_at"),
         'view_title': view_title,
         'all_tags': all_tags,
         'selected_tag': tag_filter,
