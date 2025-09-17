@@ -1,77 +1,109 @@
 {% extends "library/base.html" %}
-{% load socialaccount %}
 
-{% block title %}{{ view_title }}{% endblock %}
+{% block styles %}
+<style>
+    /* These styles are specific to the paper list page */
+    .paper-entry {
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .paper-entry:last-child {
+        border-bottom: none;
+    }
+    .paper-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .meta-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    .meta-tags a {
+        font-size: 0.6rem;
+        color: #171717;
+        font-weight: 600;
+        transition: background-color 0.2s;
+    }
+    .meta-tags a:hover {
+        text-decoration: underline 1px solid black;
+    }
+    .meta-date {
+        background-color: #171717;
+        color: #fff;
+        font-size: 0.6rem;
+        padding: 0.25rem 0.6rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .paper-title {
+        font-family: 'Monsterrat', serif;
+        font-weight: 700;
+        color: #212529;
+        font-size: 2rem;
+        line-height: 1.3;
+        display: block;
+    }
+    .paper-author {
+        font-family: 'Merriweather', serif;
+        font-style: italic;
+        color: #6c757d;
+        margin-bottom: 1rem;
+    }
+    .paper-abstract {
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+    .read-more {
+        font-weight: 600;
+        color: black;
+    }
+
+    /* Responsive styles for mobile devices */
+    @media (max-width: 768px) {
+        .paper-meta {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .meta-date {
+            align-self: flex-start;
+        }
+        .paper-title {
+            font-size: 1.75rem;
+        }
+    }
+</style>
+{% endblock %}
+
 
 {% block content %}
-<div class="container mt-4">
-
-    {% comment %}
-    This block handles the simpler, non-tabbed view for profile pages and search results.
-    It uses the 'is_home_view' flag from the view to decide what to render.
-    {% endcomment %}
-    {% if not is_home_view %}
-        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-            <h3 class="mb-2 mb-lg-0">{{ view_title }}</h3>
-            {% if profile_user and profile_user != user %}
-                {% if user in profile_user.followers.all %}
-                    <a href="{% url 'library:unfollow_user' profile_user.username %}" class="btn btn-outline-secondary">Unfollow</a>
+<!-- Main Content Feed -->
+<main class="main-content">
+    {% for paper in papers %}
+        {% include 'library/partials/_paper_list_item.html' %}
+    {% empty %}
+        <div style="text-align: center; padding: 3rem 0;">
+            <h4>No Papers Found</h4>
+            <p style="color: #6c757d;">
+                {% if selected_tag %}
+                    There are no papers matching the tag "{{ selected_tag }}".
+                {% elif search_query %}
+                     Your search for "{{ search_query }}" did not match any papers.
                 {% else %}
-                    <a href="{% url 'library:follow_user' profile_user.username %}" class="btn btn-primary">Follow</a>
+                    No papers have been uploaded yet.
                 {% endif %}
-            {% endif %}
+            </p>
         </div>
-        <div class="row g-3 g-lg-4 row-cols-1 row-cols-md-2 row-cols-xl-3">
-            {% for paper in papers %}
-                {% include 'library/partials/_paper_card.html' %}
-            {% empty %}
-                <div class="col-12">
-                    <div class="text-center p-5 bg-body-tertiary rounded-3">
-                        {% if search_query %}
-                            <h4>No Results Found</h4>
-                            <p class="text-muted">Your search for "{{ search_query }}" did not match any papers.</p>
-                        {% else %}
-                            <h4>No Papers Found</h4>
-                            <p class="text-muted">This user hasn't uploaded any papers yet.</p>
-                        {% endif %}
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
+    {% endfor %}
+</main>
 
-    {% comment %}
-    This block renders the new tabbed interface for the main homepage.
-    {% endcomment %}
-    {% else %}
-        <ul class="nav nav-tabs mb-4" id="homeTab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="all-papers-tab" data-bs-toggle="tab" data-bs-target="#all-papers-panel" type="button" role="tab" aria-controls="all-papers-panel" aria-selected="true">All Papers</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="following-tab" data-bs-toggle="tab" data-bs-target="#following-panel" type="button" role="tab" aria-controls="following-panel" aria-selected="false">Following</button>
-            </li>
-        </ul>
-        <div class="tab-content" id="homeTabContent">
-            <div class="tab-pane fade show active" id="all-papers-panel" role="tabpanel" aria-labelledby="all-papers-tab">
-                <div class="row g-3 g-lg-4 row-cols-1 row-cols-md-2 row-cols-xl-3">
-                    {% for paper in all_papers %}
-                        {% include 'library/partials/_paper_card.html' %}
-                    {% empty %}
-                         <div class="col-12"><div class="text-center p-5 bg-body-tertiary rounded-3"><h4>No papers have been uploaded yet.</h4></div></div>
-                    {% endfor %}
-                </div>
-            </div>
-            <div class="tab-pane fade" id="following-panel" role="tabpanel" aria-labelledby="following-tab">
-                 <div class="row g-3 g-lg-4 row-cols-1 row-cols-md-2 row-cols-xl-3">
-                    {% for paper in feed_papers %}
-                        {% include 'library/partials/_paper_card.html' %}
-                    {% empty %}
-                         <div class="col-12"><div class="text-center p-5 bg-body-tertiary rounded-3"><h4>Your feed is empty.</h4><p>Follow researchers to see their latest papers here.</p></div></div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    {% endif %}
-</div>
+<!-- Sidebar -->
+<aside class="sidebar">
+    <div class="sidebar-sticky">
+        {% include 'library/partials/_sidebar_filters.html' %}
+    </div>
+</aside>
 {% endblock %}
 

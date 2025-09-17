@@ -1,0 +1,54 @@
+{% comment %}
+This partial template contains the HTML for the sidebar, using the new filter design.
+{% endcomment %}
+
+<style>
+    /* New styles for the filter sidebar */
+    .filters-container {
+        background-color: #f0f0f0;
+        border: 1px solid #dcdcdc;
+        padding: 1.5rem;
+    }
+    .filters-container .title {
+        font-size: 2rem;
+        font-weight: 500;
+        font-family: 'Lato', sans-serif;
+        text-transform: uppercase;
+    }
+    .all-filters {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    .filter-tag {
+        background-color: #212529; /* Black background */
+        color: #fff;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.5rem;
+        text-decoration: none;
+        text-transform: uppercase;
+        display: inline-block;
+        transition: background-color 0.2s;
+    }
+    .filter-tag:hover {
+        background-color: #0d6efd; /* Blue on hover */
+    }
+</style>
+
+<aside class="filters-container">
+    <h2 class="title">Tags</h2>
+    
+    <div class="all-filters">
+        {% for tag in all_tags %}
+            <a href="{% url 'library:paper_list' %}?tag={{ tag.name }}" class="filter-tag">
+                {{ tag.name }}
+            </a>
+        {% endfor %}
+    </div>
+    
+    {% if selected_tag %}
+        <a href="{% url 'library:paper_list' %}" class="d-block mt-3 small text-decoration-none">&times; Clear filter for "{{ selected_tag }}"</a>
+    {% endif %}
+</aside>
+

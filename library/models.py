@@ -48,6 +48,7 @@ class Tag(models.Model):
 
 class Paper(models.Model):
     """Represents a single research paper/document."""
+    # foreign key -> create many-to-one relationship. for eg. many paper objects can have the same user
     uploader = models.ForeignKey(User, on_delete=models.CASCADE, related_name="uploaded_papers")
     title = models.CharField(max_length=300)
     authors = models.ManyToManyField(Author, blank=True)
@@ -68,13 +69,18 @@ class Paper(models.Model):
         if self.thumbnail: self.thumbnail.delete(save=False)
         super().delete(*args, **kwargs)
 
-
-class Note(models.Model):
-    """Represents a user's note on a specific paper."""
-    paper = models.ForeignKey(Paper, related_name='notes', on_delete=models.CASCADE)
+    
+class Comment(models.Model):
+    """Represents a public comment on a specific paper."""
+    paper = models.ForeignKey(Paper, related_name='comments', on_delete=models.CASCADE)
+    # NEW: Link to the user who wrote the comment
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-created_at'] # Show newest comments first
+
     def __str__(self):
-        return f'Note on "{self.paper.title}"'
+        return f'Comment by {self.user.username} on "{self.paper.title}"'
 

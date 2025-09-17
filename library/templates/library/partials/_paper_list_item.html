@@ -1,0 +1,34 @@
+{% comment %}
+This partial template contains the HTML for a single paper entry in the feed,
+matching the new, elegant design.
+{% endcomment %}
+<article class="paper-entry">
+    <div class="paper-meta">
+        <div class="meta-tags">
+            {% for tag in paper.tags.all %} {# Show up to 3 tags for a clean look #}
+                <a href="{% url 'library:paper_list' %}?tag={{ tag.name }}">
+                    {{ tag.name|upper }}
+                </a>
+            {% endfor %}
+        </div>
+        <span class="meta-date">{{ paper.uploaded_at|date:"d-m-Y" }}</span>
+    </div>
+
+    <a href="{% url 'library:paper_detail' paper.pk %}" class="paper-title">
+        {{ paper.title }}
+    </a>
+    
+    {% if paper.authors.all %}
+        <p class="paper-author">
+            By {% for author in paper.authors.all %}{{ author.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+        </p>
+    {% endif %}
+
+    <p class="paper-abstract">
+        <!-- This is a placeholder for the abstract. You can add an 'abstract' field to your Paper model later. -->
+        This section provides a brief overview of the research paper, highlighting its key findings and contributions to the field. Further details can be explored by clicking the link below.
+    </p>
+
+    <a href="{% url 'library:paper_detail' paper.pk %}" class="read-more">Read More...</a>
+</article>
+

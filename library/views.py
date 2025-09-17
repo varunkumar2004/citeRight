@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from .models import Paper, Tag, Author
-from .forms import PaperUploadForm, NoteForm
+from .forms import PaperUploadForm, CommentForm
 from django.http import HttpResponseForbidden
 import PyPDF2
 from django.db.models import Q
@@ -23,47 +23,49 @@ except LookupError:
 @login_required
 def paper_list_view(request, username=None):
     """
-    Handles displaying papers. Now includes search functionality.
+    Handles displaying papers and ensures the tag filter sidebar is always populated.
     """
+    papers = Paper.objects.all()
+    # CORRECTED: Fetch all tags to populate the sidebar on every page view.
+    all_tags = Tag.objects.all().order_by('name')
+    query = request.GET.get('q')
+    tag_filter = request.GET.get('tag')
     context = {}
-    query = request.GET.get('q') # Get the search query from the URL's GET parameters
 
     if query:
-        # If a search query is provided, filter the papers across multiple fields
-        papers = Paper.objects.filter(
+        papers = papers.filter(
             Q(title__icontains=query) |
             Q(uploader__username__icontains=query) |
             Q(authors__name__icontains=query)
-        ).distinct().order_by("-uploaded_at") # Use distinct() to avoid duplicate results from the author search
-        
+        ).distinct()
         view_title = f"Search Results for '{query}'"
-        context = {
-            'papers': papers,
-            'view_title': view_title,
-            'search_query': query
-        }
+    elif tag_filter:
+        papers = papers.filter(tags__name=tag_filter)
+        view_title = f"Papers tagged with '{tag_filter}'"
     elif username:
-        # If viewing a specific user's profile
-        user = get_object_or_404(User, username=username)
-        papers = Paper.objects.filter(uploader=user).order_by("-uploaded_at")
-        view_title = f"Papers Uploaded by {user.username}"
-        context = {
-            'papers': papers,
-            'view_title': view_title,
-            'search_query': query
-        }
+        profile_user = get_object_or_404(User, username=username)
+        papers = papers.filter(uploader=profile_user)
+        view_title = f"Papers by {profile_user.username}"
+        # Pass the profile user to the context to handle follow buttons
+        context['profile_user'] = profile_user
     else:
-        # The default view showing all papers
-        all_papers = Paper.objects.all().order_by("-uploaded_at")
+        # This is the default homepage view, now simplified
+        view_title = 'CiteRight'
+        # Pass the is_home_view flag for the template to render tabs
+        context['is_home_view'] = True
+        # For the home view, we need separate querysets for the tabs
+        context['all_papers'] = papers.order_by("-uploaded_at")
         followed_users = request.user.profile.following.all()
-        feed_papers = Paper.objects.filter(uploader__in=followed_users).order_by('-uploaded_at')
-        view_title = 'Home'
-        context = {
-            'all_papers': all_papers,
-            'feed_papers': feed_papers,
-            'view_title': view_title,
-            'is_home_view': True  # A flag for the template to render tabs
-        }
+        context['feed_papers'] = papers.filter(uploader__in=followed_users).order_by('-uploaded_at')
+
+    # CORRECTED: The context is now consistently populated for all views.
+    context.update({
+        'papers': papers.order_by("-uploaded_at") if not context.get('is_home_view') else None,
+        'view_title': view_title,
+        'all_tags': all_tags,
+        'selected_tag': tag_filter,
+        'search_query': query
+    })
     
     return render(request, 'library/paper_list.html', context)
 
@@ -72,19 +74,20 @@ def paper_list_view(request, username=None):
 def paper_detail(request, pk):
     """Display details for a single paper and handle note creation."""
     paper = get_object_or_404(Paper, pk=pk)
-    noteform = NoteForm()
+    comment_form = CommentForm()
     
     if request.method == "POST":
-        noteform = NoteForm(request.POST)
-        if noteform.is_valid():
-            note = noteform.save(commit=False)
-            note.paper = paper
-            note.save()
+        comment_form = CommentForm(request.POST)
+        if comment_form.is_valid():
+            comment = comment_form.save(commit=False)
+            comment.paper = paper
+            comment.user = request.user
+            comment.save()
             return redirect('library:paper_detail', pk=paper.pk)
     
     context = {
         'paper': paper,
-        'noteform': noteform
+        'comment_form': comment_form
     }
     
     return render(request, 'library/paper_detail.html', context)
@@ -102,8 +105,7 @@ def upload_paper(request):
             paper = form.save(commit=False)
             paper.uploader = request.user 
             paper.save()
-            form.save_m2m() 
-
+            
             # Handle author tagging
             tagged_users = form.cleaned_data.get('author_users', [])
             for user in tagged_users:
@@ -177,14 +179,12 @@ def delete_paper(request, pk):
     """Handles the deletion of a paper with a confirmation step."""
     paper = get_object_or_404(Paper, pk=pk)
     
-    # Security check: only the uploader can delete their own paper
     if paper.uploader != request.user:
         return HttpResponseForbidden("You are not allowed to delete this paper.")
     
     if request.method == 'POST':
         paper.delete()
-        # Redirect to the user's profile page after deletion
         return redirect('library:profile_view', username=request.user.username)
     
-    # For a GET request, show the confirmation page
     return render(request, 'library/paper_confirm_delete.html', {'paper': paper})
+

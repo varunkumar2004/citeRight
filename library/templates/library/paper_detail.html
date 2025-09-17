@@ -1,152 +1,213 @@
 {% extends "library/base.html" %}
-{% load socialaccount %}
 
-{% block title %}{{ paper.title }}{% endblock %}
-
-{% block content %}
+{% block styles %}
 <style>
-    /* Styles for the new interactive thumbnail viewer */
-    .thumbnail-container {
-        position: relative;
-        overflow: hidden; /* Keeps the scaled image within the rounded corners */
-        border-radius: var(--bs-border-radius-lg); /* Match Bootstrap's rounded corners */
-        display: block; /* Make the container a block-level element */
-        
-        /* NEW: Constrain the vertical height of the thumbnail viewer */
-        max-height: 500px;
+    /* Styles specific to the paper detail page */
+    .paper-header .paper-title {
+        font-family: 'Monsterrat', serif;
+        font-weight: 700;
+        color: #212529;
+        font-size: 2rem;
+        line-height: 1.3;
+        display: block;
     }
 
-    .thumbnail-container img {
-        transition: transform 0.3s ease;
-        width: 100%;
-        
-        /* NEW: Make the image fill the container area without distortion */
-        height: 100%;
-        object-fit: cover;
+    .paper-header .paper-author {
+        font-family: 'Merriweather', serif;
+        font-style: italic;
+        color: #6c757d;
+        margin-bottom: 1rem;
     }
 
-    .thumbnail-container:hover img {
-        transform: scale(1.005); /* Subtle zoom effect on hover */
-    }
-
-    .thumbnail-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.6);
-        color: white;
+    /* .paper-meta {
         display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        border-radius: var(--bs-border-radius-lg);
-        pointer-events: none; /* Allows clicks to pass through to the link */
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    } */
+
+    .paper-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+    .meta-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    .meta-tags a {
+        font-size: 0.6rem;
+        color: #171717;
+        font-weight: 600;
+        transition: background-color 0.2s;
+    }
+    .meta-tags a:hover {
+        text-decoration: underline 1px solid black;
+    }
+    .meta-date {
+        background-color: #171717;
+        color: #fff;
+        font-size: 0.6rem;
+        padding: 0.25rem 0.6rem;
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
-    .thumbnail-container:hover .thumbnail-overlay {
-        opacity: 1;
+    /* .meta-tags {
+        font-size: 0.6rem;
+        letter-spacing: 0.5px;
+        color: #171717;
+        font-weight: 600;
+        text-transform: uppercase;
+    } */
+
+    .discussion-section {
+        border-top: 1px solid var(--border-color);
+        padding-top: 2rem;
     }
 
-    .thumbnail-overlay-content {
-        text-align: center;
+    .comment-form textarea {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        font-family: inherit;
+        font-size: 1rem;
+    }
+
+    .comment-form button {
+        background-color: #212529;
+        color: #fff;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-top: 0.5rem;
+    }
+
+    .comment {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .comment-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+    }
+
+    .comment-content {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        flex: 1;
+    }
+
+    .comment-author {
+        font-weight: bold;
+    }
+
+    .comment-date {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+
+    .thumbnail-preview {
+        width: 100%;
+        border: 1px solid var(--border-color);
+        padding: 0.5rem;
     }
 </style>
+{% endblock %}
 
-<div class="container mt-4">
-    <div class="row g-4">
-        <!-- Main Paper Details Column -->
-        <div class="col-lg-8">
-            <div class="card shadow-sm mb-4">
-                <div class="card-body">
-                    <h2 class="card-title">{{ paper.title }}</h2>
-                    
-                    {% if paper.authors.all %}
-                        <h6 class="card-subtitle mb-2 text-muted">
-                            by {% for author in paper.authors.all %}{{ author.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
-                        </h6>
-                    {% endif %}
 
-                    <p class="card-text text-secondary small">
-                        Uploaded on {{ paper.uploaded_at|date:"F d, Y" }} by 
-                        <a href="{% url 'library:profile_view' paper.uploader.username %}">{{ paper.uploader.username }}</a>
-                    </p>
-
-                    {% if paper.tags.all %}
-                        <div class="mb-3">
-                            {% for tag in paper.tags.all %}
-                                <span class="badge bg-light text-dark border">{{ tag.name }}</span>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-
-                    <!-- New Interactive Thumbnail Viewer -->
-                    {% if paper.thumbnail %}
-                        <a href="{{ paper.pdf_file.url }}" target="_blank" class="thumbnail-container my-4" title="Click to view original file">
-                            <img src="{{ paper.thumbnail.url }}" class="img-fluid" alt="Thumbnail of {{ paper.title }}">
-                            <div class="thumbnail-overlay">
-                                <div class="thumbnail-overlay-content">
-                                    <i class="bi bi-box-arrow-up-right h3"></i>
-                                    <p class="mb-0">View Original File</p>
-                                </div>
-                            </div>
-                        </a>
-                    {% else %}
-                        <div class="text-center p-4 bg-body-tertiary rounded my-4">
-                            <p class="mb-0 text-muted">No thumbnail available.</p>
-                            <a href="{{ paper.pdf_file.url }}" target="_blank" class="btn btn-primary mt-2">
-                                <i class="bi bi-file-earmark-arrow-down"></i> View Original File
-                            </a>
-                        </div>
-                    {% endif %}
-                    
-                    <a href="{% url 'library:paper_list' %}" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left"></i> Back to Library
-                    </a>
-                    
-                    <!-- Conditional Delete Button -->
-                    {% if user == paper.uploader %}
-                        <a href="{% url 'library:delete_paper' paper.pk %}" class="btn btn-outline-danger float-end">
-                            <i class="bi bi-trash"></i> Delete Paper
-                        </a>
-                    {% endif %}
-                </div>
+{% block content %}
+<!-- Main Content -->
+<main class="main-content">
+    <article class="paper-header">
+        <div class="paper-meta">
+            <div class="meta-tags">
+                {% for tag in paper.tags.all %} {# Show up to 3 tags for a clean look #}
+                <a href="{% url 'library:paper_list' %}?tag={{ tag.name }}">
+                    {{ tag.name|upper }}
+                </a>
+                {% endfor %}
             </div>
+            <span class="meta-date">{{ paper.uploaded_at|date:"d-m-Y" }}</span>
         </div>
 
-        <!-- Notes Column -->
-        <div class="col-lg-4">
-            <h4>My Notes</h4>
-            <div class="card shadow-sm mb-3">
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="id_content" class="form-label visually-hidden">Note Content</label>
-                            <textarea name="content" cols="40" rows="4" class="form-control" placeholder="Add a new note..." required id="id_content"></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-success w-100">Add Note</button>
-                    </form>
-                </div>
-            </div>
-            
-            <!-- Existing Notes -->
-            {% for note in paper.notes.all %}
-            <div class="card mb-2">
-                <div class="card-body">
-                    <p class="card-text mb-1">{{ note.content|linebreaksbr }}</p>
-                    <small class="text-muted d-block text-end">{{ note.created_at|date:"F d, Y, P" }}</small>
+        <h1 class="paper-title">{{ paper.title }}</h1>
+
+        {% if paper.authors.all %}
+        <p class="paper-author">
+            By {% for author in paper.authors.all %}{{ author.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+        </p>
+        {% endif %}
+
+        <!-- <div class="paper-meta">
+            {% for tag in paper.tags.all %}
+            <span class="meta-tag">{{ tag.name }}</span>
+            {% endfor %}
+        </div> -->
+    </article>
+
+    <section class="discussion-section">
+        <h3>Discussion ({{ paper.comments.count }})</h3>
+
+        <!-- New Comment Form -->
+        <div class="comment-form my-4">
+            <form method="post">
+                {% csrf_token %}
+                {{ comment_form.content }}
+                <button type="submit">Post Comment</button>
+            </form>
+        </div>
+
+        <!-- Existing Comments -->
+        <div class="comments-list">
+            {% for comment in paper.comments.all %}
+            <div class="comment">
+                <img src="{{ comment.user.socialaccount_set.all.0.get_avatar_url }}" alt="{{ comment.user.username }}"
+                    class="comment-avatar">
+                <div class="comment-content">
+                    <p class="mb-1">
+                        <strong class="comment-author">{{ comment.user.username }}</strong>
+                        <span class="comment-date ms-2">{{ comment.created_at|date:"F d, Y" }}</span>
+                    </p>
+                    <p>{{ comment.content|linebreaksbr }}</p>
                 </div>
             </div>
             {% empty %}
-            <div class="text-center p-3 bg-body-tertiary rounded">
-                <p class="mb-0">You haven't added any notes for this paper yet.</p>
-            </div>
+            <p class="text-muted">No comments yet. Be the first to start the discussion!</p>
             {% endfor %}
         </div>
-    </div>
-</div>
-{% endblock %}
+    </section>
+</main>
 
+<!-- Sidebar -->
+<aside class="sidebar">
+    <div class="sidebar-sticky">
+        <h4>Preview</h4>
+        {% if paper.thumbnail %}
+        <a href="{{ paper.pdf_file.url }}" target="_blank">
+            <img src="{{ paper.thumbnail.url }}" alt="Thumbnail of {{ paper.title }}" class="thumbnail-preview">
+        </a>
+        {% else %}
+        <div style="padding: 2rem; background-color: #f0f0f0; text-align: center;">
+            <p>No thumbnail available.</p>
+            <a href="{{ paper.pdf_file.url }}" target="_blank">View File</a>
+        </div>
+        {% endif %}
+
+        <div class="mt-4">
+            <a href="{% url 'library:paper_list' %}" style="display: block; margin-bottom: 0.5rem;">&larr; Back to
+                Library</a>
+            {% if user == paper.uploader %}
+            <a href="{% url 'library:delete_paper' paper.pk %}" style="color: #dc3545;">Delete Paper</a>
+            {% endif %}
+        </div>
+    </div>
+</aside>
+{% endblock %}
