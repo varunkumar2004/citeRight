@@ -1,0 +1,62 @@
+{% comment %}
+This partial template displays the user's profile stats in the sidebar.
+{% endcomment %}
+
+<style>
+    .profile-stats-container {
+        background-color: var(--secondary-color);
+        padding: 1.5rem;
+        text-align: center;
+        display: grid;
+        gap: 1rem;
+    }
+    .profile-stats-avatar {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .profile-stats-avatar img {
+        border-radius: 50%;
+        width: 100px;
+        height: 100px;
+    }   
+    .profile-stats-username {
+        font-family: var(--heading-font);
+        color: var(--heading-text-color);
+        font-size: 2rem;
+        text-transform: uppercase;
+    }
+    .stats {
+        display: flex;
+        justify-content: space-around;
+        text-align: center;
+    }
+    .stat-item .count {
+        display: block;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+    .stat-item .label {
+        font-size: 0.8rem;
+        color: #6c757d;
+        text-transform: uppercase;
+    }
+</style>
+
+<aside class="profile-stats-container">
+    <div class="profile-stats-avatar">
+        <img src="{{ profile_user.socialaccount_set.all.0.get_avatar_url }}" alt="{{ profile_user.username }}" >
+    </div>
+    <h3 class="profile-stats-username">{{ profile_user.username }}</h3>
+    <div class="stats">
+        <div class="stat-item">
+            <span class="count">{{ paper_count }}</span>
+            <span class="label">Papers</span>
+        </div>
+        <div class="stat-item">
+            <span class="count">{{ following_count }}</span>
+            <span class="label">Following</span>
+        </div>
+    </div>
+</aside>

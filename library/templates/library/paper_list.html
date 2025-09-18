@@ -96,10 +96,13 @@
         line-height: 1.2rem;
         color: var(--body-text-color);
     }
-    /* .read-more {
-        font-weight: 600;
-        color: var;
-    } */
+    .end-of-list {
+        text-align: center;
+        margin-top: 1rem;
+        color: var(--alt-text-color);
+        font-family: var(--alt-font);
+        font-style: italic;
+    }
 
     /* Responsive styles for mobile devices */
     @media (max-width: 768px) {
@@ -121,30 +124,6 @@
 {% block content %}
 <!-- Main Content Feed -->
 <main class="main-content">
-
-    <!-- NEW: Profile Header Section -->
-    {% if profile_user %}
-    <div class="profile-header">
-        <img src="{{ profile_user.socialaccount_set.all.0.get_avatar_url }}" alt="{{ profile_user.username }}" class="profile-avatar">
-        <div class="profile-info">
-            <h2>{{ profile_user.username }}</h2>
-            <div class="profile-stats">
-                <span><strong>{{ paper_count }}</strong> Papers</span>
-                <span><strong>{{ following_count }}</strong> Following</span>
-            </div>
-        </div>
-        <div class="profile-actions">
-            {% if profile_user != user %}
-                {% if user in profile_user.followers.all %}
-                    <a href="{% url 'library:unfollow_user' profile_user.username %}" class="unfollow-btn">Unfollow</a>
-                {% else %}
-                    <a href="{% url 'library:follow_user' profile_user.username %}" class="follow-btn">Follow</a>
-                {% endif %}
-            {% endif %}
-        </div>
-    </div>
-    {% endif %}
-
     {% for paper in papers %}
         {% include 'library/partials/_paper_list_item.html' %}
     {% empty %}
@@ -161,12 +140,22 @@
             </p>
         </div>
     {% endfor %}
+
+    {% if papers %}
+        <div class="end-of-list">
+            <p>You've reached the end of the list.</p>
+        </div>
+    {% endif %}
 </main>
 
 <!-- Sidebar -->
 <aside class="sidebar">
     <div class="sidebar-sticky">
-        {% include 'library/partials/_sidebar_filters.html' %}
+        {% if profile_user %}
+            {% include 'library/partials/_sidebar_profile_stats.html' %}
+        {% else %}
+            {% include 'library/partials/_sidebar_filters.html' %}
+        {% endif %}
     </div>
 </aside>
 {% endblock %}

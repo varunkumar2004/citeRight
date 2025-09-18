@@ -10,9 +10,9 @@ class PaperUploadForm(forms.ModelForm):
     """
     author_users = forms.ModelMultipleChoiceField(
         queryset=User.objects.all().order_by('username'),
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.SelectMultiple(attrs={'class': 'author-select-input'}),
         required=False,
-        label="Tag Platform Users as Authors"
+        label="Select Authors (from platform users)"
     )
     
     new_authors = forms.CharField(
@@ -25,10 +25,10 @@ class PaperUploadForm(forms.ModelForm):
     class Meta: 
         model = Paper
         fields = ['title', 'pdf_file', 'publication_year']
-        widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter paper title'}),
-            'pdf_file': forms.FileInput(attrs={'class': 'form-control'}),
-        }
+        # widgets = {
+        #     'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter paper title'}),
+        #     'pdf_file': forms.FileInput(attrs={'class': 'form-control'}),
+        # }
         
 class CommentForm(forms.ModelForm):
     class Meta:

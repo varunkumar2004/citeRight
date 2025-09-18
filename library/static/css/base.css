@@ -5,6 +5,7 @@
   --body-text-color: #495057;
   --alt-text-color: #6c757d;
   --heading-text-color: #000;
+  --error-text-color: #eb4034;
 
   --input-color: #e9e5e3;
 
@@ -20,7 +21,7 @@
 }
 
 body {
-  background-color: var(--primary-color);
+  background-color: var(--heading-text-color);
   font-family: var(--primary-font);
   color: var(--body-text-color);
   line-height: 1.6;

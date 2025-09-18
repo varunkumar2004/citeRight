@@ -15,11 +15,6 @@
 
     {% block styles %}{% endblock %}
     <style>
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
-
         /* Container */
         .container {
             max-width: 1400px;
@@ -29,7 +24,7 @@
 
         /* Header */
         .site-header {
-            font-family: 'Playfair Display', serif;
+            font-family: var(--heading-font);
             border-bottom: 1px solid var(--border-color);
         }
 

@@ -1,6 +1,9 @@
 {% extends "library/base.html" %}
 
 {% block styles %}
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
 <style>
     .upload-container {
         max-width: 700px;
@@ -8,6 +11,7 @@
         padding: 2rem;
         background-color: var(--secondary-color);
     }
+
     .upload-title {
         font-size: 2rem;
         font-weight: 500;
@@ -17,15 +21,18 @@
         margin-bottom: 1rem;
         color: var(--heading-text-color);
     }
+
     .form-field {
         margin-bottom: 1rem;
     }
+
     .form-field label {
         display: block;
         margin-bottom: 0.5rem;
         font-weight: 600;
         color: var(--body-text-color);
     }
+
     .form-field input[type="text"],
     .form-field input[type="number"],
     .form-field input[type="file"] {
@@ -36,20 +43,24 @@
         font-family: inherit;
         font-size: 1rem;
     }
+
     .authors-box {
         overflow-y: auto;
     }
+
     .authors-box label {
         display: flex;
         align-items: center;
         gap: 0.5rem;
         margin-bottom: 0.5rem;
     }
+
     .upload-actions {
         display: flex;
         justify-content: flex-end;
         margin-top: 2rem;
     }
+
     .upload-btn {
         background-color: var(--heading-text-color);
         color: var(--primary-color);
@@ -66,9 +77,54 @@
         .upload-container {
             padding: 1.5rem;
         }
+
         .upload-title {
             font-size: 2rem;
         }
+    }
+
+    .select2-container--default .select2-selection--multiple {
+        background-color: #e9e5e3;
+        border: none;
+        padding: 0.5rem;
+        font-family: inherit;
+    }
+
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        background-color: #000;
+        color: #fff;
+        border: none;
+        border-radius: 0;
+        /* Sharp corners like the filter tags */
+        padding: 0.3rem 0.6rem;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        /* Uppercase text to match filters */
+    }
+
+    .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+        color: #aaa;
+        margin-right: 5px;
+        font-size: 1rem;
+    }
+
+    .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+        color: #fff;
+    }
+
+    .select2-search__field {
+        font-family: inherit !important;
+    }
+
+    .select2-dropdown {
+        background-color: #f6f3f1;
+        border-color: #e0e0e0;
+    }
+
+    .select2-container--default .select2-results__option--highlighted,
+    .select2-container--default .select2-results__option--selected {
+        background-color: #333 !important;
+        color: #fff !important;
     }
 </style>
 {% endblock %}
@@ -77,6 +133,7 @@
 <main class="main-content" style="flex: 1; border-right: none;">
     <div class="upload-container">
         <h2 class="upload-title">Upload Paper</h2>
+
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
 
@@ -96,12 +153,10 @@
             </div>
 
             <div class="form-field">
-                <label>Select Authors</label>
-                <div class="authors-box">
-                    {{ form.author_users }}
-                </div>
+                <label for="{{ form.author_users.id_for_label }}">{{ form.author_users.label }}</label>
+                {{ form.author_users }}
             </div>
-            
+
             <div class="form-field">
                 <label for="{{ form.new_authors.id_for_label }}">{{ form.new_authors.label }}</label>
                 {{ form.new_authors }}
@@ -115,3 +170,18 @@
 </main>
 {% endblock %}
 
+
+{% block scripts %}
+<!-- JavaScript libraries for the searchable select input -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    // Initialize the searchable select input
+    $(document).ready(function () {
+        $('.author-select-input').select2({
+            placeholder: "Search and select users from the platform...",
+            width: '100%'
+        });
+    });
+</script>
+{% endblock %}
