@@ -1,0 +1,73 @@
+{% extends "papers/base.html" %}
+
+{% block styles %}
+<style>
+    :root {
+        --error-text-color: #eb4034;
+    }
+
+    .delete-container {
+        max-width: 700px;
+        margin: 2rem auto;
+        text-align: center;
+        background-color: var(--secondary-color);
+        padding: 2rem;
+        display: grid;
+        gap: 1rem;
+    }
+    .delete-title {
+        font-family: var(--heading-font);
+        font-size: 2rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--heading-text-color);
+    }
+    .delete-text {
+        color: var(--body-text-color);
+    }
+    .delete-paper-title {
+        font-family: var(--alt-font);
+        font-size: 1.5rem;
+        font-style: italic;
+    }
+    .delete-warning {
+        font-weight: 700;
+        color: var(--error-text-color);
+    }
+    .delete-actions .btn {
+        text-decoration: none;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        border: 1px solid transparent;
+    }
+    .btn-danger {
+        cursor: pointer;
+        background-color: var(--error-text-color);
+        color: var(--primary-color);
+    }
+    .btn-secondary {
+        background-color: transparent;
+        color: var(--heading-text-color);
+        border-color: var(--border-color);
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<main class="main-content" style="flex: 1; border-right: none;">
+    <div class="delete-container">
+        <h2 class="delete-title">Confirm Deletion</h2>
+        <p class="delete-text">Are you sure you want to permanently delete the paper titled:</p>
+        <h4 class="delete-paper-title">"{{ paper.title }}"?</h4>
+        <p class="delete-warning">This action cannot be undone.</p>
+        
+        <form method="post" class="delete-actions">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Yes, Delete It</button>
+            <a href="{% url 'library:paper_detail' paper.pk %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</main>
+{% endblock %}
+

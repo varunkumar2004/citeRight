@@ -1,0 +1,36 @@
+:root {
+  --primary-color: #fff;
+  --secondary-color: #f6f3f1;
+  --border-color: #dee2e6;
+  --body-text-color: #495057;
+  --alt-text-color: #6c757d;
+  --heading-text-color: #000;
+  --error-text-color: #eb4034;
+
+  --input-color: #e9e5e3;
+
+  --primary-font: "Roboto", sans-serif;
+  --alt-font: "Merriweather", serif;
+  --heading-font: "PlayFair Display", serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--primary-color);
+  font-family: var(--primary-font);
+  color: var(--body-text-color);
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6, p, strong {
+    margin: 0;
+}
+
+a { 
+    text-decoration: none;
+}

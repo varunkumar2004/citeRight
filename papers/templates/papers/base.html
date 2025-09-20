@@ -1,0 +1,194 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CiteRight{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
+
+    {% block styles %}{% endblock %}
+    <style>
+        :root {
+            --primary-color: #fff;
+            --secondary-color: #f6f3f1;
+            --border-color: #dee2e6;
+            --body-text-color: #495057;
+            --alt-text-color: #6c757d;
+            --heading-text-color: #000;
+            --error-text-color: #eb4034;
+
+            --input-color: #e9e5e3;
+
+            --primary-font: "Roboto", sans-serif;
+            --alt-font: "Merriweather", serif;
+            --heading-font: "PlayFair Display", serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--primary-color);
+            font-family: var(--primary-font);
+            color: var(--body-text-color);
+            line-height: 1.6;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        p,
+        strong {
+            margin: 0;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Header */
+        .site-header {
+            font-family: var(--heading-font);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-nav .nav-section {
+            flex: 1;
+        }
+
+        .header-nav {
+            text-align: center;
+        }
+
+        .header-nav .center {
+            text-align: center;
+            border-left: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            padding: 0 1rem;
+        }
+
+        /* .header-nav .end { text-align: right; } */
+        .site-header a {
+            color: var(--body-text-color);
+            transition: color 0.2s;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .site-header a:hover {
+            color: var(--heading-text-color);
+        }
+
+        .site-header .brand {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--heading-text-color);
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: flex;
+        }
+
+        .main-content {
+            flex: 3;
+            padding: 2rem;
+        }
+
+        .sidebar {
+            flex: 1;
+            padding: 1.5rem;
+        }
+
+        .sidebar-sticky {
+            position: sticky;
+            top: 1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .main-layout {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                border-left: none;
+                border-top: 1px solid var(--border-color);
+            }
+
+            .header-nav {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .header-nav .center {
+                border: none;
+                padding: 0.5rem 0;
+            }
+
+            .site-header .brand {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container">
+            <nav class="header-nav">
+                <div class="nav-section start">
+                    <a href="{% url 'papers:upload_paper' %}">UPLOAD PAPER</a>
+                </div>
+                <div class="nav-section center">
+                    <a class="brand" href="{% url 'papers:paper_list' %}">CITERIGHT</a>
+                </div>
+                <div class="nav-section end">
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'profiles:profile_view' user.username %}">MY PROFILE</a>
+                    {% else %}
+                    <a href="{% url 'account_login' %}">LOGIN</a>
+                    {% endif %}
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="main-layout">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>
