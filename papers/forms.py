@@ -5,9 +5,33 @@ from .models import Paper, Comment
 
 class PaperUploadForm(forms.ModelForm):
     """
-    Form for uploading a new paper. Includes fields to tag existing users
-    as authors and to create new authors who are not users.
+    Form for uploading a new paper. 
+    Includes fields to tag existing users as authors and to create new authors who are not users.
+    Includes user choice for writing the article content or generating it via AI.
     """
+    ARTICLES_CHOICES = [
+        ('ai', 'Generate article using AI'),
+        ('manual', 'I will write the article myself')
+    ]
+    
+    article_choice = forms.ChoiceField(
+        choices=ARTICLES_CHOICES,
+        widget=forms.RadioSelect,
+        initial='ai',
+        label="Article Content"
+    )
+    
+    user_article = forms.CharField(
+        widget=forms.Textarea(
+            attrs={
+                'rows': 10,
+                'placeholder': 'Write your article content here...',
+            },
+        ),
+        required=False,
+        label="Your Article"
+    )
+    
     author_users = forms.ModelMultipleChoiceField(
         queryset=User.objects.all().order_by('username'),
         widget=forms.SelectMultiple(attrs={'class': 'author-select-input'}),

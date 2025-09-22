@@ -86,26 +86,19 @@
     .select2-container--default .select2-selection--multiple {
         background-color: #e9e5e3;
         border: none;
-        padding: 0.5rem;
-        font-family: inherit;
     }
 
     .select2-container--default .select2-selection--multiple .select2-selection__choice {
         background-color: #000;
         color: #fff;
-        border: none;
-        border-radius: 0;
-        /* Sharp corners like the filter tags */
-        padding: 0.3rem 0.6rem;
+        /* padding: 0.3rem 0.6rem; */
         font-size: 0.8rem;
-        text-transform: uppercase;
-        /* Uppercase text to match filters */
     }
 
     .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
         color: #aaa;
-        margin-right: 5px;
-        font-size: 1rem;
+        /* margin-right: 5px; */
+        font-size: 0.8rem;
     }
 
     .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
@@ -126,6 +119,20 @@
         background-color: #333 !important;
         color: #fff !important;
     }
+
+    /* ... (existing select2 styles) ... */
+    .article-choice-area {
+        margin-bottom: 1.5rem;
+    }
+
+    .radio-options label {
+        margin-right: 1.5rem;
+    }
+
+    #user-article-wrapper {
+        display: none;
+    }
+    /* Hidden by default */
 </style>
 {% endblock %}
 
@@ -152,6 +159,19 @@
                 {{ form.publication_year }}
             </div>
 
+            <!-- NEW: Article choice section -->
+            <div class="form-field article-choice-area">
+                <label>{{ form.article_choice.label }}</label>
+                <div class="radio-options">{{ form.article_choice }}</div>
+            </div>
+            <div class="form-field" id="user-article-wrapper">
+                <label for="{{ form.user_article.id_for_label }}">{{ form.user_article.label }}</label>
+                {{ form.user_article }}
+            </div>
+            <!-- End of new section -->
+
+            <hr style="margin: 2rem 0;">
+
             <div class="form-field">
                 <label for="{{ form.author_users.id_for_label }}">{{ form.author_users.label }}</label>
                 {{ form.author_users }}
@@ -172,16 +192,29 @@
 
 
 {% block scripts %}
-<!-- JavaScript libraries for the searchable select input -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script>
-    // Initialize the searchable select input
-    $(document).ready(function () {
-        $('.author-select-input').select2({
-            placeholder: "Search and select users from the platform...",
-            width: '100%'
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Initialize the searchable author select
+            $('.author-select-input').select2({
+                placeholder: "Search and select users...",
+                width: '100%'
+            });
+
+            // --- NEW: JavaScript to toggle the article text area ---
+            const articleChoiceRadios = document.querySelectorAll('input[name="article_choice"]');
+            const userArticleWrapper = document.getElementById('user-article-wrapper');
+            
+            articleChoiceRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === 'manual') {
+                        userArticleWrapper.style.display = 'block';
+                    } else {
+                        userArticleWrapper.style.display = 'none';
+                    }
+                });
+            });
         });
-    });
-</script>
+    </script>
 {% endblock %}

@@ -1,22 +1,12 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseForbidden, JsonResponse
-from .models import Paper, Tag, Author, Comment
+from django.http import HttpResponseForbidden
+from .models import Paper, Author, Comment, Tag
 from .forms import PaperUploadForm, CommentForm
-# from ai_processing.tasks import generate_article_task
+from ai_processing.tasks import generate_article_task
 from django.db.models import Q
-import PyPDF2
 import fitz
 from django.core.files.base import ContentFile
-from sklearn.feature_extraction.text import TfidfVectorizer
-import nltk
-import re
-from nltk.corpus import stopwords
-
-try:
-    nltk.data.find('corpora/stopwords')
-except LookupError:
-    nltk.download('stopwords')
 
 
 @login_required
@@ -25,6 +15,7 @@ def paper_list_view(request):
     Handles displaying the main homepage, search results, and tag-filtered results.
     """
     papers = Paper.objects.select_related('uploader').prefetch_related('authors', 'tags')
+    # ... (rest of view is correct)
     all_tags = Tag.objects.all().order_by('name')
     query = request.GET.get('q')
     tag_filter = request.GET.get('tag')
@@ -71,14 +62,25 @@ def paper_detail(request, pk):
 
 @login_required
 def upload_paper(request):
-    """Handles the form for uploading a new paper."""
+    """
+    Handles paper uploads, now delegating all AI processing to the background task.
+    """
     if request.method == 'POST':
         form = PaperUploadForm(request.POST, request.FILES)
         if form.is_valid():
             paper = form.save(commit=False)
             paper.uploader = request.user
-            paper.abstract = "Generating AI article, please check back in a moment..."
+            
+            choice = form.cleaned_data.get('article_choice')
+            if choice == 'ai':
+                paper.article_content = "Generating AI article & tags, please check back..."
+            else:
+                paper.article_content = form.cleaned_data.get('user_article')
+            
             paper.save()
+            
+            if choice == 'ai':
+                generate_article_task.delay(paper.id)
 
             # Handle author tagging
             tagged_users = form.cleaned_data.get('author_users', [])
@@ -92,8 +94,20 @@ def upload_paper(request):
                     author, created = Author.objects.get_or_create(name=name, user=None)
                     paper.authors.add(author)
             
-            # Trigger background task for AI processing
-            # generate_article_task.delay(paper.id)
+            # Thumbnail generation logic remains
+            uploaded_file = form.cleaned_data.get('pdf_file')
+            if uploaded_file and uploaded_file.name.lower().endswith('.pdf'):
+                try:
+                    uploaded_file.seek(0)
+                    doc = fitz.open(stream=uploaded_file.read(), filetype="pdf")
+                    page = doc.load_page(0)
+                    pix = page.get_pixmap()
+                    img_bytes = pix.tobytes("png")
+                    thumbnail_file = ContentFile(img_bytes)
+                    paper.thumbnail.save(f'{paper.pk}_thumbnail.png', thumbnail_file, save=True)
+                    doc.close()
+                except Exception as e:
+                    print(f"Error generating thumbnail: {e}")
 
             return redirect('papers:paper_list')
     else:
@@ -103,12 +117,12 @@ def upload_paper(request):
 
 @login_required
 def edit_abstract_view(request, pk):
-    """Allows the uploader to edit the AI-generated abstract."""
+    """Allows the uploader to edit the paper's article content."""
     paper = get_object_or_404(Paper, pk=pk)
     if paper.uploader != request.user:
-        return HttpResponseForbidden("You are not allowed to edit this abstract.")
+        return HttpResponseForbidden("You are not allowed to edit this article.")
     if request.method == 'POST':
-        paper.abstract = request.POST.get('abstract')
+        paper.article_content = request.POST.get('abstract')
         paper.save()
         return redirect('papers:paper_detail', pk=paper.pk)
     return render(request, 'papers/edit_abstract.html', {'paper': paper})
@@ -124,27 +138,4 @@ def delete_paper(request, pk):
         paper.delete()
         return redirect('profiles:profile_view', username=request.user.username)
     return render(request, 'papers/paper_confirm_delete.html', {'paper': paper})
-
-
-@login_required
-def bookmarked_papers_view(request):
-    """Displays a list of papers the user has bookmarked."""
-    bookmarked_papers = request.user.bookmarked_papers.all().order_by('-uploaded_at')
-    context = {
-        'papers': bookmarked_papers,
-        'view_title': 'My Bookmarks',
-        'all_tags': Tag.objects.all().order_by('name'), # For the sidebar
-    }
-    return render(request, 'papers/paper_list.html', context)
-
-
-@login_required
-def toggle_bookmark_view(request, pk):
-    """Adds or removes a paper from the user's bookmarks."""
-    paper = get_object_or_404(Paper, pk=pk)
-    if paper in request.user.bookmarked_papers.all():
-        request.user.bookmarked_papers.remove(paper)
-    else:
-        request.user.bookmarked_papers.add(paper)
-    return redirect(request.META.get('HTTP_REFERER', 'papers:paper_list'))
 

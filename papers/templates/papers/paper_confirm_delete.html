@@ -65,7 +65,7 @@
         <form method="post" class="delete-actions">
             {% csrf_token %}
             <button type="submit" class="btn btn-danger">Yes, Delete It</button>
-            <a href="{% url 'library:paper_detail' paper.pk %}" class="btn btn-secondary">Cancel</a>
+            <a href="{% url 'papers:paper_detail' paper.pk %}" class="btn btn-secondary">Cancel</a>
         </form>
     </div>
 </main>

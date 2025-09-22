@@ -42,14 +42,14 @@ This partial template contains the HTML for the sidebar, using the new filter de
     
     <div class="all-filters">
         {% for tag in all_tags %}
-            <a href="{% url 'library:paper_list' %}?tag={{ tag.name }}" class="filter-tag">
+            <a href="{% url 'papers:paper_list' %}?tag={{ tag.name }}" class="filter-tag">
                 {{ tag.name }}
             </a>
         {% endfor %}
     </div>
     
     {% if selected_tag %}
-        <a href="{% url 'library:paper_list' %}">&times; Clear filter for "{{ selected_tag }}"</a>
+        <a href="{% url 'papers:paper_list' %}">&times; Clear filter for "{{ selected_tag }}"</a>
     {% endif %}
 </aside>
 

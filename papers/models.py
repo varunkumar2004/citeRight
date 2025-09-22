@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 import os
-
+from ai_processing.utils import markdown_to_html
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -30,15 +30,19 @@ class Paper(models.Model):
     # foreign key -> create many-to-one relationship. for eg. many paper objects can have the same user
     uploader = models.ForeignKey(User, on_delete=models.CASCADE, related_name="uploaded_papers")
     title = models.CharField(max_length=300)
+    article_content = models.TextField(blank=True, null=True)
     authors = models.ManyToManyField(Author, blank=True)
     publication_year = models.IntegerField(null=True, blank=True)
     tags = models.ManyToManyField(Tag, blank=True)
     pdf_file = models.FileField(upload_to='papers/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
     thumbnail = models.ImageField(upload_to='thumbnails/', null=True, blank=True)
+    
+    @property
+    def article_content_html(self):
+        return markdown_to_html(self.article_content)
 
-    def __str__(self):
-        return self.title
+    def __str__(self): return self.title
     
     def filename(self):
         return os.path.basename(self.pdf_file.name)
@@ -60,6 +64,5 @@ class Comment(models.Model):
     class Meta:
         ordering = ['-created_at'] # Show newest comments first
 
-    def __str__(self):
-        return f'Comment by {self.user.username} on "{self.paper.title}"'
+    def __str__(self): return f'Comment by {self.user.username} on "{self.paper.title}"'
 

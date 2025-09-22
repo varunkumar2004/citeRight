@@ -3,6 +3,10 @@
 {% block styles %}
 <style>
     /* Styles specific to the paper detail page */
+    .main-content {
+        display: grid;
+        gap: 1rem;
+    }
     .paper-header .paper-title {
         font-weight: 700;
         color: var(--heading-text-color);
@@ -126,10 +130,21 @@
             {% endif %}
             Uploaded by <a href="{% url 'papers:profile_view' paper.uploader.username %}">{{ paper.uploader.username }}</a>
         </p>
+
+        <div class="paper-abstract">
+            {% if paper.article_content %}
+                {{ paper.article_content_html|safe }}
+            {% else %}
+                No abstract is available for this paper yet.
+            {% endif %}
+        </div>
     </article>
 
+    <hr>
+
     <section class="discussion-section">
-        <!-- New Comment Form -->
+        <h3>Discussions ({{ paper.comments.count }})</h3>
+
         <div class="comment-form my-4">
             <form method="post">
                 {% csrf_token %}
@@ -138,7 +153,6 @@
             </form>
         </div>
 
-        <h3>Discussions ({{ paper.comments.count }})</h3>
         <!-- Existing Comments -->
         <div class="comments-list">
             {% for comment in paper.comments.all %}
