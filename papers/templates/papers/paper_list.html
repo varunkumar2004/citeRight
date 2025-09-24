@@ -3,14 +3,11 @@
 {% block styles %}
 <style>
     /* NEW styles for the profile header */
-    .profile-header {
-        display: grid;
-        align-items: center;
-        justify-content: center;
-        gap: 1rem;
-        margin-bottom: 1.3rem;
-        padding-bottom: 2rem;
-        border-bottom: 1px solid var(--border-color);
+    .profile-header h1 {
+        font-family: var(--alt-font);
+        font-style: italic;
+        color: var(--alt-text-color);
+        margin-bottom: 1rem;
     }
     .profile-avatar {
         width: 80px;
@@ -20,11 +17,12 @@
     .profile-info h2 {
         font-family: var(--heading-font);
         text-transform: uppercase;
+        margin-bottom: 0.5rem;
     }
     .profile-stats {
         display: flex;
-        place-items: center;
-        gap: 1rem;
+        justify-content: center;
+        gap: 1.5rem;
         color: var(--body-text-color);
     }
     .follow-btn {
@@ -33,6 +31,8 @@
         border: none;
         padding: 0.5rem 1.25rem;
         text-decoration: none;
+        display: inline-block;
+        margin-top: 1rem;
     }
     .unfollow-btn {
         background: var(--primary-color);
@@ -40,6 +40,8 @@
         border: 1px solid var(--border-color);
         padding: 0.5rem 1.25rem;
         text-decoration: none;
+        display: inline-block;
+        margin-top: 1rem;
     } 
 
 
@@ -124,6 +126,12 @@
 {% block content %}
 <!-- Main Content Feed -->
 <main class="main-content">
+    {% if profile_user and papers %}
+    <div class="profile-header">
+        <h1>Papers ({{ paper_count }})  </h1>
+    </div>
+    {% endif %}
+
     {% for paper in papers %}
         {% include 'papers/partials/_paper_list_item.html' %}
     {% empty %}

@@ -8,7 +8,7 @@ This partial template displays the user's profile stats in the sidebar.
         padding: 1.5rem;
         text-align: center;
         display: grid;
-        gap: 1rem;
+        gap: 0.5rem;
     }
     .profile-stats-avatar {
         width: 100%;
@@ -39,8 +39,25 @@ This partial template displays the user's profile stats in the sidebar.
     }
     .stat-item .label {
         font-size: 0.8rem;
-        color: #6c757d;
+        color: var(--alt-text-color);
         text-transform: uppercase;
+    }
+
+    .follow-btn, .unfollow-btn {
+        text-decoration: none;
+        padding: 0.6rem 1.5rem;
+        font-weight: 600;
+        display: inline-block;
+        transition: background-color 0.2s;
+    }
+    .follow-btn {
+        background: var(--heading-text-color);
+        color: var(--primary-color);
+    }
+    .unfollow-btn {
+        background: var(--primary-color);
+        color: var(--heading-text-color);
+        border: 1px solid var(--border-color);
     }
 </style>
 
@@ -49,14 +66,23 @@ This partial template displays the user's profile stats in the sidebar.
         <img src="{{ profile_user.socialaccount_set.all.0.get_avatar_url }}" alt="{{ profile_user.username }}" >
     </div>
     <h3 class="profile-stats-username">{{ profile_user.username }}</h3>
+
+    {% if profile_user == user %}
     <div class="stats">
-        <div class="stat-item">
-            <span class="count">{{ paper_count }}</span>
-            <span class="label">Papers</span>
-        </div>
         <div class="stat-item">
             <span class="count">{{ following_count }}</span>
             <span class="label">Following</span>
         </div>
+    </div>
+    {% endif %}
+
+    <div class="profile-action-btn">
+        {% if profile_user != user %}
+            {% if user in profile_user.followers.all %}
+                <a href="{% url 'profiles:unfollow_user' profile_user.username %}" class="unfollow-btn">Unfollow</a>
+            {% else %}
+                <a href="{% url 'profiles:follow_user' profile_user.username %}" class="follow-btn">Follow</a>
+            {% endif %}
+        {% endif %}
     </div>
 </aside>

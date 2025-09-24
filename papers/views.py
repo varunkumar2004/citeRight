@@ -10,38 +10,58 @@ from django.core.files.base import ContentFile
 
 
 @login_required
-def paper_list_view(request):
+def paper_list_view(request, username=None):
     """
-    Handles displaying the main homepage, search results, and tag-filtered results.
+    Handles displaying papers for the homepage (with tabs), profiles, and search/filter results.
     """
-    papers = Paper.objects.select_related('uploader').prefetch_related('authors', 'tags')
-    # ... (rest of view is correct)
     all_tags = Tag.objects.all().order_by('name')
     query = request.GET.get('q')
     tag_filter = request.GET.get('tag')
-    
+    context = {}
+
+    # Base queryset is optimized to pre-fetch related data
+    papers_base_qs = Paper.objects.select_related('uploader').prefetch_related('authors', 'tags')
+
     if query:
-        papers = papers.filter(
+        papers = papers_base_qs.filter(
             Q(title__icontains=query) |
-            Q(authors__name__icontains=query) |
-            Q(uploader__username__icontains=query)
+            Q(uploader__username__icontains=query) |
+            Q(authors__name__icontains=query)
         ).distinct()
         view_title = f"Search Results for '{query}'"
+        context['papers'] = papers.order_by("-uploaded_at")
     elif tag_filter:
-        papers = papers.filter(tags__name=tag_filter)
+        papers = papers_base_qs.filter(tags__name=tag_filter)
         view_title = f"Papers tagged with '{tag_filter}'"
+        context['papers'] = papers.order_by("-uploaded_at")
+    elif username:
+        profile_user = get_object_or_404(User, username=username)
+        papers = papers_base_qs.filter(uploader=profile_user)
+        view_title = f"Papers by {profile_user.username}"
+        context.update({
+            'papers': papers.order_by("-uploaded_at"),
+            'profile_user': profile_user
+        })
     else:
+        # This is the default homepage view, now with data for two tabs
         view_title = 'CiteRight'
+        all_papers = papers_base_qs.order_by("-uploaded_at")
+        followed_users = request.user.profile.following.all()
+        feed_papers = papers_base_qs.filter(uploader__in=followed_users).order_by('-uploaded_at')
+        context.update({
+            'all_papers': all_papers,
+            'feed_papers': feed_papers,
+            'is_home_view': True
+        })
 
-    context = {
-        'papers': papers.order_by("-uploaded_at"),
+    context.update({
         'view_title': view_title,
         'all_tags': all_tags,
         'selected_tag': tag_filter,
-        'search_query': query,
-    }
+        'search_query': query
+    })
+    
     return render(request, 'papers/paper_list.html', context)
-
 
 @login_required
 def paper_detail(request, pk):
