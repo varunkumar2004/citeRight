@@ -27,7 +27,7 @@ matching the new, elegant design.
 
     <p class="paper-abstract">
         {% if paper.article_content %}
-            {{ paper.article_content|truncatewords:50|linebreaks }}
+            {{ paper.article_content | truncatewords:50 | linebreaks }}
         {% else %}
             No abstract is available for this paper yet.
         {% endif %}

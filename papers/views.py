@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
-from .models import Paper, Author, Comment, Tag
+from .models import Paper, Tag, Author, Comment
 from .forms import PaperUploadForm, CommentForm
 from ai_processing.tasks import generate_article_task
 from django.db.models import Q
@@ -10,58 +10,70 @@ from django.core.files.base import ContentFile
 
 
 @login_required
-def paper_list_view(request, username=None):
+def paper_list_view(request):
     """
-    Handles displaying papers for the homepage (with tabs), profiles, and search/filter results.
+    Handles displaying the homepage with tabs, search results, and tag-filtered results.
+    Supports two main tabs: 'all' (all papers) and 'following' (papers from followed users).
     """
-    all_tags = Tag.objects.all().order_by('name')
-    query = request.GET.get('q')
-    tag_filter = request.GET.get('tag')
+    all_tags = Tag.objects.all().order_by("name")
+    query = request.GET.get("q")
+    tag_filter = request.GET.get("tag")
+    tab = request.GET.get("tab", "all")  # Default tab = all
     context = {}
 
-    # Base queryset is optimized to pre-fetch related data
-    papers_base_qs = Paper.objects.select_related('uploader').prefetch_related('authors', 'tags')
+    papers_base_qs = Paper.objects.select_related("uploader").prefetch_related(
+        "authors", "tags", "bookmarks"
+    )
 
     if query:
+        # Search results
         papers = papers_base_qs.filter(
-            Q(title__icontains=query) |
-            Q(uploader__username__icontains=query) |
-            Q(authors__name__icontains=query)
+            Q(title__icontains=query)
+            | Q(authors__name__icontains=query)
+            | Q(uploader__username__icontains=query)
         ).distinct()
-        view_title = f"Search Results for '{query}'"
-        context['papers'] = papers.order_by("-uploaded_at")
-    elif tag_filter:
-        papers = papers_base_qs.filter(tags__name=tag_filter)
-        view_title = f"Papers tagged with '{tag_filter}'"
-        context['papers'] = papers.order_by("-uploaded_at")
-    elif username:
-        profile_user = get_object_or_404(User, username=username)
-        papers = papers_base_qs.filter(uploader=profile_user)
-        view_title = f"Papers by {profile_user.username}"
         context.update({
-            'papers': papers.order_by("-uploaded_at"),
-            'profile_user': profile_user
-        })
-    else:
-        # This is the default homepage view, now with data for two tabs
-        view_title = 'CiteRight'
-        all_papers = papers_base_qs.order_by("-uploaded_at")
-        followed_users = request.user.profile.following.all()
-        feed_papers = papers_base_qs.filter(uploader__in=followed_users).order_by('-uploaded_at')
-        context.update({
-            'all_papers': all_papers,
-            'feed_papers': feed_papers,
-            'is_home_view': True
+            "papers": papers.order_by("-uploaded_at"),
+            "view_title": f"Search Results for '{query}'",
+            "search_query": query,
         })
 
-    context.update({
-        'view_title': view_title,
-        'all_tags': all_tags,
-        'selected_tag': tag_filter,
-        'search_query': query
-    })
-    
-    return render(request, 'papers/paper_list.html', context)
+    elif tag_filter:
+        # Tag-filtered results
+        papers = papers_base_qs.filter(tags__name=tag_filter)
+        context.update({
+            "papers": papers.order_by("-uploaded_at"),
+            "view_title": f"Papers tagged with '{tag_filter}'",
+            "selected_tag": tag_filter,
+        })
+
+    else:
+        # Homepage tabbed view
+        view_title = "CiteRight"
+        all_papers = None
+        feed_papers = None
+
+        if tab == "all":
+            all_papers = papers_base_qs.order_by("-uploaded_at")
+        elif tab == "following":
+            followed_users = request.user.profile.following.all()
+            feed_papers = papers_base_qs.filter(
+                uploader__in=followed_users
+            ).order_by("-uploaded_at")
+
+        context.update({
+            "tab": tab,
+            "all_papers": all_papers,
+            "feed_papers": feed_papers,
+            "is_home_view": True,  # Flag for template
+            "view_title": view_title,
+        })
+
+    # Always pass tags for sidebar
+    context["all_tags"] = all_tags
+
+    return render(request, "papers/paper_list.html", context)
+
 
 @login_required
 def paper_detail(request, pk):
@@ -82,9 +94,7 @@ def paper_detail(request, pk):
 
 @login_required
 def upload_paper(request):
-    """
-    Handles paper uploads, now delegating all AI processing to the background task.
-    """
+    """Handles the form for uploading a new paper."""
     if request.method == 'POST':
         form = PaperUploadForm(request.POST, request.FILES)
         if form.is_valid():
@@ -114,7 +124,7 @@ def upload_paper(request):
                     author, created = Author.objects.get_or_create(name=name, user=None)
                     paper.authors.add(author)
             
-            # Thumbnail generation logic remains
+            # Thumbnail generation logic
             uploaded_file = form.cleaned_data.get('pdf_file')
             if uploaded_file and uploaded_file.name.lower().endswith('.pdf'):
                 try:
@@ -158,4 +168,27 @@ def delete_paper(request, pk):
         paper.delete()
         return redirect('profiles:profile_view', username=request.user.username)
     return render(request, 'papers/paper_confirm_delete.html', {'paper': paper})
+
+
+@login_required
+def bookmarked_papers_view(request):
+    """Displays a list of papers the user has bookmarked."""
+    papers = request.user.bookmarked_papers.all().order_by('-uploaded_at')
+    context = {
+        'papers': papers,
+        'view_title': 'My Bookmarks',
+        'all_tags': Tag.objects.all().order_by('name'),
+    }
+    return render(request, 'papers/paper_list.html', context)
+
+
+@login_required
+def toggle_bookmark_view(request, pk):
+    """Adds or removes a paper from the user's bookmarks."""
+    paper = get_object_or_404(Paper, pk=pk)
+    if paper in request.user.bookmarked_papers.all():
+        request.user.bookmarked_papers.remove(paper)
+    else:
+        request.user.bookmarked_papers.add(paper)
+    return redirect(request.META.get('HTTP_REFERER', 'papers:paper_list'))
 

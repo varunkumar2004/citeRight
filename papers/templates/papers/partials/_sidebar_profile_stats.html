@@ -70,6 +70,11 @@ This partial template displays the user's profile stats in the sidebar.
     {% if profile_user == user %}
     <div class="stats">
         <div class="stat-item">
+            <span class="count">{{ paper_count }}</span>
+            <span class="label">Papers</span>
+        </div>
+
+        <div class="stat-item">
             <span class="count">{{ following_count }}</span>
             <span class="label">Following</span>
         </div>

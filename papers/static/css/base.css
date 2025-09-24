@@ -39,3 +39,8 @@ hr {
   background-color: var(--border-color);
   color: var(--border-color);
 }
+
+ul {
+  list-style-type: none;
+  padding-left: 0;
+}

@@ -8,12 +8,39 @@
         gap: 1rem;
     }
     .paper-header .paper-title {
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+    }
+    .paper-header .paper-title h1 {
         font-weight: 700;
         color: var(--heading-text-color);
         font-size: 2rem;
         line-height: 1.3;
         display: block;
     }
+    .btn-bookmark {
+        display: block;
+        text-align: center;
+        padding: 0.2rem 0.8rem;
+        font-weight: 600;
+        border: 1px solid var(--border-color);
+        color: var(--heading-text-color);
+        background-color: transparent;
+        transition: all 0.2s;
+    }
+    .btn-bookmark:hover {
+        background-color: #212529;
+        color: #fff;
+    }
+    .btn-bookmark.bookmarked {
+        background-color: #212529;
+        color: #fff;
+    }
+
+
     .paper-header .paper-attribution {
         font-family: var(--alt-font);
         font-style: italic;
@@ -46,6 +73,12 @@
         flex-shrink: 0;
         font-weight: 500;
     }
+    
+    .paper-abstract {
+        text-align: justify;
+    }
+
+
     .discussion-section h3 {
         font-family: var(--alt-font);
         font-style: italic;
@@ -122,13 +155,24 @@
             <span class="meta-date">{{ paper.uploaded_at|date:"F d, Y" }}</span>
         </div>
 
-        <h1 class="paper-title">{{ paper.title }}</h1>
+        <div class="paper-title">
+            <h1>{{ paper.title }}</h1>
+
+            <a href="{% url 'papers:toggle_bookmark' paper.pk %}" 
+               class="btn-bookmark {% if user in paper.bookmarks.all %}bookmarked{% endif %}">
+                {% if user in paper.bookmarks.all %}
+                    <i class="bi bi-bookmark-fill"></i> Bookmarked
+                {% else %}
+                    <i class="bi bi-bookmark"></i> Bookmark
+                {% endif %}
+            </a>
+        </div>
 
         <p class="paper-attribution">
             {% if paper.authors.all %}
                 By {% for author in paper.authors.all %}{{ author.name }}{% if not forloop.last %}, {% endif %}{% endfor %} |
             {% endif %}
-            Uploaded by <a href="{% url 'papers:profile_view' paper.uploader.username %}">{{ paper.uploader.username }}</a>
+            Uploaded by <a href="{% url 'profiles:profile_view' paper.uploader.username %}">{{ paper.uploader.username }}</a>
         </p>
 
         <div class="paper-abstract">
