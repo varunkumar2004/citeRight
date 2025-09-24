@@ -37,6 +37,7 @@ class Paper(models.Model):
     pdf_file = models.FileField(upload_to='papers/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
     thumbnail = models.ImageField(upload_to='thumbnails/', null=True, blank=True)
+    bookmarks = models.ManyToManyField(User, related_name='bookmarked_papers', blank=True)
     
     @property
     def article_content_html(self):
