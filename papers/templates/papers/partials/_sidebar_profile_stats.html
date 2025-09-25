@@ -4,90 +4,158 @@ This partial template displays the user's profile stats in the sidebar.
 
 <style>
     .profile-stats-container {
+        display: grid;
+        gap: 1rem;
         background-color: var(--secondary-color);
         padding: 1.5rem;
-        text-align: center;
-        display: grid;
-        gap: 0.5rem;
     }
+
+    .profile-info-grid {
+        display: flex;
+        place-items: center;
+        gap: 1rem;
+        grid-template-columns: fit-content max-content;
+    }
+    .profile-info-grid .profile-state-date {
+        font-family: var(--alt-text);
+        color: var(--alt-text-color);
+        font-style: italic;
+        font-size: 1rem;
+        line-height: 1.1rem;
+    }
+
     .profile-stats-avatar {
-        width: 100%;
+        /* width: 100%; */
         display: flex;
         align-items: center;
         justify-content: center;
     }
+
     .profile-stats-avatar img {
         border-radius: 50%;
-        width: 100px;
-        height: 100px;
-    }   
+        width: 80px;
+        height: 80px;
+    }
+
     .profile-stats-username {
         font-family: var(--heading-font);
         color: var(--heading-text-color);
         font-size: 2rem;
         text-transform: uppercase;
     }
+
     .stats {
         display: flex;
         justify-content: space-around;
         text-align: center;
     }
+
     .stat-item .count {
         display: block;
         font-size: 1.5rem;
         font-weight: 700;
     }
+
     .stat-item .label {
         font-size: 0.8rem;
         color: var(--alt-text-color);
         text-transform: uppercase;
     }
 
-    .follow-btn, .unfollow-btn {
+    .follow-btn,
+    .unfollow-btn {
+        width: 100%;
         text-decoration: none;
         padding: 0.6rem 1.5rem;
         font-weight: 600;
+        text-align: center;
         display: inline-block;
         transition: background-color 0.2s;
     }
+
     .follow-btn {
         background: var(--heading-text-color);
         color: var(--primary-color);
     }
+
     .unfollow-btn {
         background: var(--primary-color);
         color: var(--heading-text-color);
         border: 1px solid var(--border-color);
     }
+
+
+    /* Following Section */
+    .following-title {
+        font-family: var(--alt-font);
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+        text-align: left;
+    }
+
+    .following-list {
+        display: grid;
+        gap: 0.5rem;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        text-align: left;
+    }
+
+    .following-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .following-avatar {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+    }
+
+    .following-username {
+        text-decoration: none;
+        font-weight: 600;
+    }
 </style>
 
 <aside class="profile-stats-container">
-    <div class="profile-stats-avatar">
-        <img src="{{ profile_user.socialaccount_set.all.0.get_avatar_url }}" alt="{{ profile_user.username }}" >
-    </div>
-    <h3 class="profile-stats-username">{{ profile_user.username }}</h3>
-
-    {% if profile_user == user %}
-    <div class="stats">
-        <div class="stat-item">
-            <span class="count">{{ paper_count }}</span>
-            <span class="label">Papers</span>
+    <div class="profile-info-grid">
+        <div class="profile-stats-avatar">
+                <img src="{{ profile_user.socialaccount_set.all.0.get_avatar_url }}" alt="{{ profile_user.username }}">
         </div>
 
-        <div class="stat-item">
-            <span class="count">{{ following_count }}</span>
-            <span class="label">Following</span>
+        <div class="profile-stats-info">
+            <h3 class="profile-stats-username">{{ profile_user.username }}</h3>        
+            <p class="profile-state-date">Joined on {{ profile_user.date_joined | date:"F d, Y" }}</p>
         </div>
     </div>
-    {% endif %}
-
+    
     <div class="profile-action-btn">
         {% if profile_user != user %}
-            {% if user in profile_user.followers.all %}
+            {% if profile_user in user.profile.following.all %}
                 <a href="{% url 'profiles:unfollow_user' profile_user.username %}" class="unfollow-btn">Unfollow</a>
             {% else %}
                 <a href="{% url 'profiles:follow_user' profile_user.username %}" class="follow-btn">Follow</a>
             {% endif %}
         {% endif %}
     </div>
+
+    {% if profile_user == user %}
+    <div class="following-section">
+        <h4 class="following-title">Following ({{ profile_user.profile.following.all|length }})</h4>
+        <ul class="following-list">
+            {% for followed_user in profile_user.profile.following.all %}
+            <li class="following-item">
+                <img src="{{ followed_user.socialaccount_set.all.0.get_avatar_url }}" alt="{{ followed_user.username }}"
+                    class="following-avatar">
+                <a href="{% url 'profiles:profile_view' followed_user.username %}" class="following-username">
+                    {{ followed_user.username }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
 </aside>

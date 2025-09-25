@@ -2,6 +2,31 @@
 
 {% block styles %}
 <style>
+    /* Search Bar */
+    .search-section {
+        padding-bottom: 1.2rem;
+    }
+    .search-form {
+        display: flex;
+        gap: 1rem;
+    }
+    .search-input {
+        flex-grow: 1;
+        font-size: 1.25rem;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        background-color: var(--input-color);
+    }
+    .search-btn {
+        background-color: var(--heading-text-color);
+        color: var(--primary-color);
+        border: none;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+
     .profile-header h1 {
         font-family: var(--alt-font);
         font-style: italic;
@@ -161,6 +186,15 @@
 {% block content %}
 <!-- Main Content Feed -->
 <main class="main-content">
+    <section class="search-section">
+        <form method="get" action="{% url 'papers:paper_list' %}" class="search-form">
+            <input type="search" name="q" class="search-input" placeholder="Search papers..."
+                value="{{ search_query|default:'' }}">
+            <button type="submit" class="search-btn">Search</button>
+        </form>
+    </section>
+
+
     {% if profile_user %}
     <ul class="nav nav-tabs" id="profileTab">
         <li class="nav-item">
@@ -192,7 +226,6 @@
 
 
     {% elif is_home_view %}
-        <!-- HOMEPAGE VIEW -->
         <ul class="nav nav-tabs" id="homeTab">
             <li class="nav-item">
                 <a class="nav-link {% if tab == 'all' %}active{% endif %}"
