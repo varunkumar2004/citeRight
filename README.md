@@ -63,5 +63,5 @@ Users can build their own library, follow other researchers, engage in discussio
 
 Clone the repository:
 ```bash
-git clone [https://github.com/varunkumar2004/citeRight.git](https://github.com/varunkumar2004/citeRight.git)
+git clone https://github.com/varunkumar2004/citeRight.git
 cd citeright
