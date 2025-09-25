@@ -1,13 +1,13 @@
 from celery import shared_task
-from papers.models import Paper, Tag # Import the Tag model
+from papers.models import Paper, Tag
 import PyPDF2
 import requests
-import os
-import json # Import the json library for parsing
+import json
+# Import Django's settings to securely access the API key
+from django.conf import settings
 
-# IMPORTANT: You need to get your own API key from Google AI Studio
-API_KEY = "AIzaSyDQdQxl4dV4JrjONyM5lQt_ctqSuI8c5R8" 
-API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
+# The API URL is now built using the key from your settings file
+API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={settings.GEMINI_API_KEY}"
 
 @shared_task
 def generate_article_task(paper_id):
@@ -33,7 +33,6 @@ def generate_article_task(paper_id):
             paper.save()
             return "No text extracted from PDF."
 
-        # UPDATED: The prompt now asks for simple text paragraphs.
         prompt = f"""
         Analyze the following text from a research document. Your task is to:
         1. Generate a formal report consisting of simple text paragraphs. The report should cover an introduction, the key findings, and a conclusion. Ensure there is a new line after each paragraph. Do NOT use markdown headings, numbered lists, or bullet points.
@@ -49,21 +48,12 @@ def generate_article_task(paper_id):
 
         response_schema = {
             "type": "OBJECT",
-            "properties": {
-                "report": {"type": "STRING"},
-                "tags": {
-                    "type": "ARRAY",
-                    "items": {"type": "STRING"}
-                }
-            }
+            "properties": { "report": {"type": "STRING"}, "tags": { "type": "ARRAY", "items": {"type": "STRING"} } }
         }
 
         payload = {
             "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {
-                "responseMimeType": "application/json",
-                "responseSchema": response_schema
-            }
+            "generationConfig": { "responseMimeType": "application/json", "responseSchema": response_schema }
         }
         
         headers = {"Content-Type": "application/json"}
@@ -71,7 +61,6 @@ def generate_article_task(paper_id):
         response.raise_for_status()
 
         result = response.json()
-        
         response_data = result['candidates'][0]['content']['parts'][0]['text']
 
         paper.article_content = response_data.get("report", "AI failed to generate a report.")
