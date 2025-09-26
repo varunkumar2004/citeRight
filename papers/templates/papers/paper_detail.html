@@ -7,6 +7,7 @@
         display: grid;
         gap: 1rem;
     }
+
     .paper-header .paper-title {
         display: flex;
         width: 100%;
@@ -14,6 +15,7 @@
         align-items: center;
         gap: 1rem;
     }
+
     .paper-header .paper-title h1 {
         font-weight: 700;
         color: var(--heading-text-color);
@@ -21,6 +23,7 @@
         line-height: 1.3;
         display: block;
     }
+
     .btn-bookmark {
         display: block;
         text-align: center;
@@ -31,10 +34,12 @@
         background-color: transparent;
         transition: all 0.2s;
     }
+
     .btn-bookmark:hover {
         background-color: #212529;
         color: #fff;
     }
+
     .btn-bookmark.bookmarked {
         background-color: #212529;
         color: #fff;
@@ -47,25 +52,30 @@
         color: var(--alt-text-color);
         margin-bottom: 0.5rem;
     }
+
     .paper-meta {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
     }
+
     .meta-tags {
         display: flex;
         flex-wrap: wrap;
         gap: 1rem;
     }
+
     .meta-tags a {
         font-size: 0.8rem;
         color: var(--body-text-color);
         font-weight: 600;
         transition: background-color 0.2s;
     }
+
     .meta-tags a:hover {
         text-decoration: underline 1px solid black;
     }
+
     .meta-date {
         color: var(--body-text-color);
         font-size: 0.8rem;
@@ -73,7 +83,7 @@
         flex-shrink: 0;
         font-weight: 500;
     }
-    
+
     .paper-abstract {
         text-align: justify;
     }
@@ -85,11 +95,13 @@
         color: var(--body-text-color);
         margin-bottom: 0.5rem;
     }
+
     .comment-form {
         margin-top: 1rem;
         display: grid;
         width: 100%;
     }
+
     .comment-form textarea {
         width: 100%;
         padding: 0.75rem;
@@ -99,6 +111,7 @@
         font-size: 1rem;
         margin-bottom: 0.5rem;
     }
+
     .comment-form button {
         background-color: var(--heading-text-color);
         color: var(--primary-color);
@@ -107,32 +120,44 @@
         cursor: pointer;
         float: right;
     }
+
     .comment {
         display: flex;
         gap: 1rem;
         margin-top: 1.5rem;
     }
+
     .comment-avatar {
         width: 45px;
         height: 45px;
         border-radius: 50%;
     }
+
     .comment-content {
         font-size: 0.8rem;
         flex: 1;
     }
+
     .comment-author {
         font-weight: bold;
     }
+
     .comment-date {
         font-size: 0.8rem;
         color: var(--body-text-color);
     }
+
     .thumbnail-preview {
         width: 100%;
         border: 1px solid var(--border-color);
         border-radius: 4px;
     }
+
+    .sidebar {
+        display: grid;
+        gap: 1rem;
+    }
+
     .sidebar-actions a {
         display: block;
         margin-bottom: 0.5rem;
@@ -158,28 +183,28 @@
         <div class="paper-title">
             <h1>{{ paper.title }}</h1>
 
-            <a href="{% url 'papers:toggle_bookmark' paper.pk %}" 
-               class="btn-bookmark {% if user in paper.bookmarks.all %}bookmarked{% endif %}">
+            <a href="{% url 'papers:toggle_bookmark' paper.pk %}"
+                class="btn-bookmark {% if user in paper.bookmarks.all %}bookmarked{% endif %}">
                 {% if user in paper.bookmarks.all %}
-                    <i class="bi bi-bookmark-fill"></i> Bookmarked
+                <i class="bi bi-bookmark-fill">Bookmarked</i>
                 {% else %}
-                    <i class="bi bi-bookmark"></i> Bookmark
+                <i class="bi bi-bookmark">Bookmark</i>
                 {% endif %}
             </a>
         </div>
 
         <p class="paper-attribution">
             {% if paper.authors.all %}
-                By {% for author in paper.authors.all %}{{ author.name }}{% if not forloop.last %}, {% endif %}{% endfor %} |
+            By {% for author in paper.authors.all %}{{ author.name }}{% if not forloop.last %}, {% endif %}{% endfor %} | 
             {% endif %}
             Uploaded by <a href="{% url 'profiles:profile_view' paper.uploader.username %}">{{ paper.uploader.username }}</a>
         </p>
 
         <div class="paper-abstract">
             {% if paper.article_content %}
-                {{ paper.article_content_html|safe }}
+            {{ paper.article_content_html|safe }}
             {% else %}
-                No abstract is available for this paper yet.
+            No abstract is available for this paper yet.
             {% endif %}
         </div>
     </article>
@@ -220,6 +245,7 @@
 <aside class="sidebar">
     <div class="sidebar-sticky">
         <h4>Preview</h4>
+
         {% if paper.thumbnail %}
         <a href="{{ paper.pdf_file.url }}" target="_blank">
             <img src="{{ paper.thumbnail.url }}" alt="Thumbnail of {{ paper.title }}" class="thumbnail-preview">
@@ -232,7 +258,6 @@
         {% endif %}
 
         <div class="mt-4 sidebar-actions">
-            <a href="{% url 'papers:paper_list' %}">&larr; Back to Library</a>
             {% if user == paper.uploader %}
             <a href="{% url 'papers:delete_paper' paper.pk %}" style="color: #dc3545;">Delete Paper</a>
             {% endif %}
@@ -240,4 +265,3 @@
     </div>
 </aside>
 {% endblock %}
-

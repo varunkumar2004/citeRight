@@ -91,7 +91,6 @@
     .select2-container--default .select2-selection--multiple .select2-selection__choice {
         background-color: #000;
         color: #fff;
-        /* padding: 0.3rem 0.6rem; */
         font-size: 0.8rem;
     }
 
@@ -105,13 +104,9 @@
         color: #fff;
     }
 
-    .select2-search__field {
-        font-family: inherit !important;
-    }
-
     .select2-dropdown {
         background-color: #f6f3f1;
-        border-color: #e0e0e0;
+        /* border-color: #e0e0e0; */
     }
 
     .select2-container--default .select2-results__option--highlighted,
@@ -120,7 +115,6 @@
         color: #fff !important;
     }
 
-    /* ... (existing select2 styles) ... */
     .article-choice-area {
         margin-bottom: 1.5rem;
     }
@@ -132,7 +126,6 @@
     #user-article-wrapper {
         display: none;
     }
-    /* Hidden by default */
 </style>
 {% endblock %}
 
@@ -159,7 +152,6 @@
                 {{ form.publication_year }}
             </div>
 
-            <!-- NEW: Article choice section -->
             <div class="form-field article-choice-area">
                 <label>{{ form.article_choice.label }}</label>
                 <div class="radio-options">{{ form.article_choice }}</div>
@@ -168,7 +160,6 @@
                 <label for="{{ form.user_article.id_for_label }}">{{ form.user_article.label }}</label>
                 {{ form.user_article }}
             </div>
-            <!-- End of new section -->
 
             <hr style="margin: 2rem 0;">
 
